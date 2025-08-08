@@ -1,5 +1,30 @@
 # Images in `<video>`
 
+Authors: Lea Verou, Florian Rivoal
+
+<details open>
+<summary>Contents</summary>
+
+1. [User Needs \& Use cases](#user-needs--use-cases)
+2. [User research](#user-research)
+   1. [Current workarounds](#current-workarounds)
+   2. [Developer signals](#developer-signals)
+3. [Goals](#goals)
+   1. [Non-goals](#non-goals)
+4. [Proposed solution](#proposed-solution)
+5. [Discussion](#discussion)
+   1. [Emulating current `<img>` behavior with `<video>`](#emulating-current-img-behavior-with-video)
+   2. [Is it web compatible?](#is-it-web-compatible)
+   3. [How to treat static images?](#how-to-treat-static-images)
+   4. [Would this encourage higher usage of inefficient video formats?](#would-this-encourage-higher-usage-of-inefficient-video-formats)
+   5. [What about synchronization?](#what-about-synchronization)
+6. [Sample code snippets](#sample-code-snippets)
+7. [Future improvements](#future-improvements)
+8. [Alternatives considered](#alternatives-considered)
+   1. [Making `<img>` and/or `<picture>` media elements](#making-img-andor-picture-media-elements)
+   2. [Controlling image animation in CSS](#controlling-image-animation-in-css)
+</details>
+
 ## User Needs & Use cases
 
 In websites with user-generated content that support image embeds, such as social media, users often embed animated images, such as animated GIFs or APNG. By default, UAs autoplay and loop these images, which can be jarring for users, especially in use cases where there are multiple images on a single page (e.g. image galleries) and violates WCAG. Websites need to expose ways for users to control playback, especially around turning off autoplay and/or looping.

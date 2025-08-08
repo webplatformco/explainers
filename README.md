@@ -1,2 +1,4 @@
-# explainers
-Repo for explainers. Inclusion does not imply consensus.
+# Explainers
+
+Repo to host explainers.
+Inclusion does not imply consensus by other Collective members.

@@ -35,7 +35,8 @@ Some examples:
 * Image gallery, where rather than all images animating together, users hover or focus an image to trigger autoplay
 * Animated emojis sent in social media
 
-There is a wide range of use cases and desired UIs and user experiences, so making this an automatic UA feature would not be sufficient (and is likely not web-compatible). For example:
+There is a wide range of use cases and desired UIs and user experiences, so making this an automatic UA feature would not be sufficient (and is likely not web-compatible).
+For example:
 
 * Start paused and play on hover and focus
 * Start paused with a play button and toggle between playing and paused states on click
@@ -210,10 +211,10 @@ for (const video of document.querySelectorAll("video.image")) {
 
 This is a first step in addressing the most pressing existing pain points by making complex things possible. There is a lot to be done for making them easy:
 
-* Images typically need much simpler player UI, which is also useful for videos as well. A new value for controls or an expansion of controlslist could support UA-generated simpler controls, rather than requiring authors to recreate them from scratch.
-* CSS pseudo-classes could be introduced to target images separately, or target static images separately. These could be either duration based (e.g. :min-duration() ) or for predefined things (e.g. :static )
-* Interest invokers could eliminate the need for JS to play/pause on hover/focus (and make the interaction more generalizable).
-* Ideally, it should be possible to disable autoplay declaratively when (prefers-reduced-motion) is on, but that is orthogonal to this proposal, as it applies to regular videos as well.
+* Images typically need much simpler player UI, which is also useful for certain types of videos as well. A new value for controls or an expansion of `controlslist` could support UA-generated simpler controls, rather than requiring authors to recreate them from scratch.
+* CSS pseudo-classes could be introduced to target images separately, or target static images separately. These could be either duration based (e.g. `:min-duration() `) or for predefined things (e.g. `:static`)
+* [Interest invokers](https://open-ui.org/components/interest-invokers.explainer/) could eliminate the need for JS to play/pause on hover/focus (and make the interaction more generalizable).
+* Ideally, it should be possible to disable autoplay declaratively when `(prefers-reduced-motion)` is on, but that is orthogonal to this proposal, as it applies to regular videos too.
 
 ## Alternatives considered
 

@@ -138,12 +138,15 @@ At its most basic version, it would take the following form:
 
 This property applies to:
 * **content images**, which are part of the document, as defined by the host language.
-    In the case of HTML, this is the `<img>` element (including its use inside the `<picture>` element)
+    In the case of HTML, this is the `<img>` element (including its use inside the `<picture>` element).
+    In the case of SVG, this is the `<imgage>` element.
+    Images injected into the page though the CSS `content` property on real (non-pseudo) elements
+    are also considered content images.
 * **decorative images**: images injected into the page via CSS,
     such as background images,
     border images,
-    through the `content` property,
-    or any other use of the `image()` function.
+    through the `content` property on pseudo elements,
+    or any other reference to external images.
 
 This property has no effect on other types of graphical content, such as `<videos>` elements, or `<canvas>`.
 

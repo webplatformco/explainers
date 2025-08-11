@@ -117,7 +117,7 @@ Given that images in `<video>` are currently treated as an authoring mistake, we
 
 While at first it seems reasonable to restrict this functionality to animated images only, that would be worse for both authors and implementors:
 
-* UAs would need to read a variable number of bytes to even determine whether some formats are animated (for example, in APNG reading the TBD chunk comes after variable length descriptive metadata)
+* UAs would need to read a variable number of bytes to even determine whether some formats are animated (for example, in APNG reading the [acTL](https://www.w3.org/TR/png-3/#5ChunkOrdering) chunk [comes after variable length descriptive metadata](https://www.w3.org/TR/png-3/#5ChunkOrdering))
 * Authors would need to detect whether an image is animated and use different elements, which is nontrivial in most templating environments. By allowing static images as well, they can simply use `<video>` indiscriminately.
 
 Static images could be treated as videos with one frame, and a predefined duration. Possible choices for that are:

@@ -293,8 +293,10 @@ The `paused` value could be extended to give control over which frame of the ima
     though they could if they wanted to.
     Similarly, it is not expected that they would announce paused or playing images any differently,
     though they could if they wanted to.
-* Conversely, when the `controlled` value is specified,
-    the element does become focusable screen readers should announce the element distinctly,
+* Conversely, when the `controlled` value is specified
+    on an element containing an actually animated content image,
+    the element does become focusable so that its controls can be operated,
+    and screen readers should announce the element distinctly,
     similar to how they do for `<video>` elements.
     Note that there is precedent for changing the focusability of elements based on CSS:
     in addition to a few of properties which can suppress an elements focusability (e.g. `display`, `visibility`…),

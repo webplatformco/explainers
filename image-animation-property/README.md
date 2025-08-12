@@ -166,7 +166,6 @@ all values have the same effect (i.e. none).
     synchronized with other instances of the same image on the page
 * **paused**:
     the image animation does not run.
-    Instead, the first frame of the image is displayed.
 * **running**:
     the image animation plays,
     without synchronization with any other instance of the same image on the page.

@@ -25,7 +25,7 @@ Authors: Florian Rivoal, Lea Verou
 6. [Rejected Alternatives](#rejected-alternatives)
     1. [Provide this as a UA Setting](#provide-this-as-a-ua-setting)
     2. [Reuse the Existing `animation-*` Properties](#reuse-the-existing-animation--properties)
-    3. [Many More](#many-more)
+    3. [Other Alternatives](#other-alternatives)
 </details>
 
 ## User Needs & Use Cases
@@ -427,8 +427,11 @@ If the regular `animation-*` properties cannot be made to apply by default and w
 it makes little sense to try and shoehorn image animations into them,
 even if there are similarities.
 
-### Many More
-We looked into a number of other alternatives,
-and concluded they were poor solutions.
-We should write up about them some day.
+### Other Alternatives
 
+***This section is a work in progress.***
+
+Here is a short list,
+to be expanded,
+of other things that were considered but did not seem like good solutions:
+* [Media Fragments](../images-in-video#using-media-fragments)

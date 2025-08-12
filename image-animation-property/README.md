@@ -148,9 +148,9 @@ This property applies to:
     through the `content` property on pseudo elements,
     or any other reference to external images.
 
-This property has no effect on other types of graphical content, such as `<videos>` elements, or `<canvas>`.
+This property has no effect on other types of graphical content, such as `<video>` elements, or `<canvas>`.
 
-Issue: what about `<object>`, `<embed>`, or `<svg>`?
+Issue: what about `<object>`, `<embed>`, `<svg>`, or the `<video>` element's poster image?
 
 When an element contains several decorative images (e.g. background images *and* border images),
 or if it contains both a content image *and* decorative images,

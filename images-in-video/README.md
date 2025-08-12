@@ -6,6 +6,7 @@ Authors: Lea Verou, Florian Rivoal
 <summary>Contents</summary>
 
 1. [User Needs \& Use cases](#user-needs--use-cases)
+   1. [Architectural considerations](#architectural-considerations)
 2. [User research](#user-research)
    1. [Current workarounds](#current-workarounds)
    2. [Developer signals](#developer-signals)
@@ -44,13 +45,22 @@ There is such a wide range of use cases and desired UIs and user experiences, th
 
 For example:
 * **Play trigger:** Interest (Hover, focus), clicking on play button, viewport intersection, etc.
-* **Playback UI:** None, play button but no pause button, play/pause button, etc.
+* **Playback UI:** None, play button but no pause button, play/pause button (often not looking like a standard play/pause button, see below), etc.
 * **Initial state:** autoplay, autoplay only if `(prefers-reduced-motion)` is off, paused
 * **Loop behavior:** loop, loop only if `(prefers-reduced-motion)` is off
 * **Behavior when not playing:** Pause common when playback UI is present or the trigger is viewport intersection, rewind more common for interest triggers
 
 Playback UI is not even always a play/pause button, e.g. this was modeled after an old Twitter (?) UI:
 ![](media/gif.gif)
+
+Additionally, there are many cases where websites need to handle videos and images similarly and it's a QoL improvement to be able to just use the same element for both, rather than having to branch. For example, a demo gallery that uses videos when available and falls back to static screenshots when not.
+
+### Architectural considerations
+
+There is already a trajectory of blurring hard distinctions between different media types:
+- Formats like animated AVIF are just repackagings of a video format, blurring the lines between "image" formats and "video" formats.
+- UAs already support videos in `<audio>` elements and audio files in `<video>` elements. ([testcase by Jake Archibald](https://random-stuff.jakearchibald.com/media-combinations/))
+- WebKit has already shipped support for videos in `<img>` elements (see [whatwg/html#7141](https://github.com/whatwg/html/issues/7141))
 
 ## User research
 
@@ -76,6 +86,13 @@ While by no means unbiased or scientific, a quick social media poll shows large 
 * [X poll](https://x.com/LeaVerou/status/1951457982916469028)
 * [Mastodon poll](https://front-end.social/@leaverou/114956605810091186)
 * [Bsky discussion](https://bsky.app/profile/lea.verou.me/post/3lvezoaigws2c)
+
+There are also several questions around accomplishing this on Q&A sites:
+- https://stackoverflow.com/questions/21872700/how-can-i-play-a-gif-like-9-gag
+- https://stackoverflow.com/questions/29661821/is-it-possible-to-pause-a-gif-image
+- https://stackoverflow.com/questions/5818003/stop-a-gif-animation-onload-on-mouseover-start-the-activation
+- https://reddit.com/r/HTML/comments/3hjccx/how_can_i_animate_and_stop_gifs_with_mouse_hover/
+- https://www.reddit.com/r/FirefoxCSS/comments/1523xwr/stop_animated_gifs_play_on_hoverclick/
 
 ## Goals
 

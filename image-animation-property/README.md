@@ -388,6 +388,23 @@ But if it doesn't,
 it also doesn't add them to animated images which are meaningful parts of the content,
 since it doesn't reliably know which is which.
 
+In a browser where `image-animation` is implemented,
+this UI setting could continue to exist,
+possibly implemented in different ways.
+The most blunt way is to simply make all images non animated when the setting is on,
+leaving the CSS property nothing to usefully take effect on.
+More interestingly, the setting could be reinterpreted in terms of the CSS property,
+```css
+@media (prefers-reduced-motion) {
+  *,
+  *::before,
+  *::after,
+  *::marker {
+    image-animation: controlled !important;
+  }
+}
+```
+
 ### Reuse the Existing `animation-*` Properties
 Properties like `animation-play-state: running | paused`
 or `animation-iteration-count: infinite | <number [0,∞]>`

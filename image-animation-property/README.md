@@ -410,20 +410,27 @@ Properties like `animation-play-state: running | paused`
 or `animation-iteration-count: infinite | <number [0,∞]>`
 have value space that are similar to what is proposed here.
 We could consider treating animated images as CSS animations,
-and making (all) existing animation properties apply to them.
+and making (all) existing animation properties apply to images with multiple frames,
+and attempt to explain the fact that they are animated in terms of CSS properties,
+gaining full control over them along the way.
+
 However a “similar“ value space is not an identical value space:
-* The `normal` or `controlled` values of `image-animation` are missing from  `animation-play-state`, and would not be generally applicable.
+* The some values of `image-animation` are image specific
+    and are missing from  `animation-play-state`,
+    and would not be generally applicable.
 * `animation-iteration-count` lacks a value that can default to what the image specifies internally.
-* Various other `animation-*` properties lack values that can express what images need. For instance, what about `animation-duration`? 
+* Various other `animation-*` properties lack values that can express what images need.
+    For instance, what about `animation-duration`? 
 * The initial values of the `animation-*` properties are not appropriate for images.
 
-Making the `animation-*` properties be capable of expressing normal image behavior would require significant extensions.
-Even if that were done, Unless an additional opt-in is added,
+Adding these missing values or smart intial / auto values is certainly possible,
+but making the `animation-*` properties be capable of expressing normal image behavior would require significant extensions.
+Even if that were done, unless an additional opt-in is added,
 this is certain to cause web-compatibility problems,
 as `animation-*` properties are widely used on all sorts of elements with decorative or content images,
 and so far without any effect.
 Turning it on would cause undesired effects in unsuspecting web-sites.
-If the regular `animation-*` properties cannot be made to apply by default and would need to be redesigned anyway,
+If the regular `animation-*` properties cannot be made to apply by default and would need significant retro-fitting anyway,
 it makes little sense to try and shoehorn image animations into them,
 even if there are similarities.
 

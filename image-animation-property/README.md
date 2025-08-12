@@ -231,6 +231,20 @@ img:hover, img:focus {
 }
 ```
 
+<p id=ex-carousel>
+Interesting effects can easily be achieved in combination with other CSS:
+```css
+.carousel {
+  overflow: scroll;
+  scroll-snap-type: both mandatory;
+}
+.carousel img {
+  scroll-snap-align: center;
+  image-animation: paused;
+}
+.carousel img:snapped { image-animation: play; }
+```
+
 ### Possible Extensions
 
 #### Control Over Iterations

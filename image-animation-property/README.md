@@ -15,11 +15,11 @@ Authors: Florian Rivoal, Lea Verou
     1. [Sample Code Snippets](#sample-code-snippets)
     2. [Possible Extensions](#possible-extensions)
         1. [Control Over Iterations](#control-over-iterations)
-        2. [Longhands And Further Controls](#Longhands-and-further-controls)
+        2. [Longhands And Further Controls](#longhands-and-further-controls)
         3. [Control Over the Paused State](#control-over-the-paused-state)
     3. [Accessibility Considerations](#accessibility-considerations)
     4. [Privacy Considerations](#privacy-considerations)
-5. [Complementary Solutions](#complementary-Solutions)
+5. [Complementary Solutions](#complementary-solutions)
     1. [Images in the `<video>` Element](#images-in-the-video-element)
     2. [What About `<img control>`?](#what-about-img-control)
 6. [Rejected Alternatives](#rejected-alternatives)
@@ -49,7 +49,7 @@ site authors have no control over this.
 This leads to a user desire to control such animations.
 However, due to the diversity of usage,
 there is a wide range of use cases and desired UIs and user experiences,
-so making this an automatic or opt-in UA feature would not be sufficient.
+so making this an automatic or opt-in UA feature [would not be sufficient](#provide-this-as-a-ua-setting).
 
 To offer their users the best experience,
 websites need to control the playback experience,
@@ -110,7 +110,7 @@ A few examples amongst many of people asking for that type of functionality.
 ### Current Workarounds
 Numerous workarounds exist (further highlighting author/user  demand),
 all with a variety of downsides.
-See https://github.com/webplatformco/explainers/tree/main/images-in-video#user-content-current-workarounds for a brief discussion.
+See the [“Current Workarounds” section of the Images-in-video explainer](../images-in-video#user-content-current-workarounds) for a brief discussion.
 
 ## Goals
 * Provide declarative syntax to enable/disable animation of images
@@ -121,7 +121,7 @@ See https://github.com/webplatformco/explainers/tree/main/images-in-video#user-c
 
 ### Non-goals
 * Turning animated images into fully fledged video player.
-    (This [could be pursued separately](https://github.com/webplatformco/explainers/blob/main/images-in-video/README.md),
+    (This [could be pursued separately](../images-in-video/README.md),
     but is not the focus of this explainer.)
 
 ## Proposed Solution
@@ -341,7 +341,7 @@ We argue that this is an acceptable trade-off:
 ## Complementary Solutions
 
 ### Images in the `<video>` Element
-See [the explainer for “Images in `<video>`”](https://github.com/webplatformco/explainers/blob/main/images-in-video/README.md).
+See [the explainer for “Images in `<video>`”](../images-in-video/README.md).
 
 Animated images are effectively videos without a sound track.
 Allowing images in the `<video>` element would take advantage of the rich controls

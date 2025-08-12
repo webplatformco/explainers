@@ -271,9 +271,20 @@ when the element is focused or hovered.
 ```
 
 #### Longhands And Further Controls
-The property above could be broken down into longhands (`image-animation-play-state`, `image-animation-iteration-count`).
+The property above could be broken down into longhands
+possibly similar to those of the `animation-*` family of properties
+(`image-animation-play-state`, `image-animation-iteration-count`).
 Depending on use cases,
-additional properties inspired by `animation-*` properties could also be considered .
+additional properties inspired by `animation-*` properties could also be considered.
+
+Note: if we want to go this way,
+it might be better to rename some values discussed above;
+names in this explainer were chosen to maximize self-explanatory power,
+but if we want to be maximize similarity to the `animation-*` properties,
+different names may be better.
+For instance,
+`loop` in `animation-iteration-count` is actually called `infinite`,
+and `once` would be `1`.
 
 #### Control Over the Paused State
 The `paused` value could be extended to give control over which frame of the image is displayed when it is stopped.

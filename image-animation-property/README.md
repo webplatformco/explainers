@@ -1,4 +1,4 @@
-# CSS Control Over Animated Images
+# CSS Image Animation
 
 Authors: Florian Rivoal, Lea Verou
 

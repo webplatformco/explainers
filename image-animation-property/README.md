@@ -13,7 +13,8 @@ Authors: Florian Rivoal, Lea Verou
     1. [Non-goals](#non-goals)
 4. [Proposed Solution](#proposed-solution)
     1. [Sample Code Snippets](#sample-code-snippets)
-    2. [Possible Extensions](#possible-extensions)
+    2. [Discussion of the `controlled` Value](#discussion-of-the-controlled-value)
+    3. [Possible Extensions](#possible-extensions)
         1. [Control Over Iterations](#control-over-iterations)
         2. [Longhands And Further Controls](#longhands-and-further-controls)
         3. [Control Over the Paused State](#control-over-the-paused-state)
@@ -61,6 +62,7 @@ For example:
 * Turn off autoplay for decorative images when `prefers-reduced-motion` is on,
     while keeping animations on for those that are part of UI interactions
 
+<p id=there-to-stay>
 In some cases,
 this can already be done using alternatives to animated images,
 such as CSS animations, SVG, or `<video>` elements,
@@ -196,6 +198,7 @@ Turn off autoplay on all images, showing UI controls for playback on animatable 
 ```
 Note that this can be applied just as easily by a site's author, a [web extension](https://w3c.github.io/webextensions/specification/), a user-stylesheet, without any modification to—or knowledge of—the site's markup patterns. Other uses could include a web-based email-client using this to keep animated images under control in HTML email.
 
+<p id=ex-on-demand>
 Same as above, in response to a [user request for reduced motion](https://drafts.csswg.org/mediaqueries-5/#prefers-reduced-motion):
 ```css
 @media (prefers-reduced-motion) {
@@ -216,6 +219,7 @@ and offering on-demand playback for relevant parts of the content.
 }
 ```
 
+<p id=ex-simple-controls>
 The browser-provided controls are not the only way to start a paused image.
 Elaborate controls can obviously be build with custom markup and script,
 but simple cases can be done declaratively.
@@ -244,6 +248,85 @@ Interesting effects can easily be achieved in combination with other CSS:
 }
 .carousel img:snapped { image-animation: play; }
 ```
+
+### Discussion of the `controlled` Value
+
+The `controlled` value presented above is more complex than the rest,
+so it is worth taking some time to explain
+why it is a reasonable and important part of this proposal.
+
+<dl>
+<dt>Is it OK to have a CSS property affect UI?
+<dd>
+There is precedent for CSS properties affecting the presence of UI controls on elements:
+[`resise`](https://www.w3.org/TR/css-ui-3/#resize),
+[`overflow: scroll` or `overflow: auto `](https://www.w3.org/TR/css-overflow-3/#overflow-control).
+
+<dt>Do we need any such thing at all?
+<dd>
+As discussed [in the example above](#ex-simple-controls),
+a simple interaction model can be built without any additional markup nor JS;
+and certainly arbitrary UI can be built if you allow for extra markup and JS.
+
+However, in the general case, authors have no way of knowing which images are static and which are animatable.
+Without this knowledge, the choice is either to provide no controls at all,
+or controls even on static images that don't need it.
+
+Enabling authors (and web-extension developers, and writers of user stylesheets)
+to disable by default unwanted animations,
+while keeping the ability to view them on demand,
+on existing content,
+is an important motivation for this feature.
+This is trivially achieved with this [previously discussed](#ex-on-demand) rule,
+but out of reach otherwise:
+```css
+@media (prefers-reduced-motion) {
+  :root { image-animation: controlled; }
+}
+```
+
+<dt>Couldn't we use pseudo-classes instead?
+<dd>
+Something like an `:animatable` pseudo class would solve the above information problem,
+and authors could build their UI from there.
+But would it be better?
+We should make easy things easy,
+and provide a good user experience for users.
+The example below shows what a typical browser-provided UI can be expected to look like,
+and replicating that manually,
+with good accessibility,
+would not be easy.
+
+<img src="../images-in-video/media/wa-animated-image.gif" alt="Paused image with a centered overlayed triangular 'play' button, visible whether or not the user hovers. When pressed, the image animation starts, and the button turns into a double-bar 'pause' button, visible while the image is hovered, but disapearing if the cursor is moved away">
+
+<dt>Shouldn't this be done in markup instead?
+<dd>
+Arguably that should be possible too.
+In [a different explainer](../images-in-video/README.md),
+we argue that the ability to use animated image formats in the `<video>` element would address a number of use cases.
+Maybe animatable images in `<img>` elements should never have existed,
+but they do,
+and [for a number of reasons they are here to stay](#here-to-stay).
+And as discussed [in the intro](user-needs--use-cases),
+due to preferences and to WCAG reasons,
+users need to be able to chose to turn such animations off
+while keeping the ability to opt into viewing them individually.
+`image-animation: controlled` can be applied to existing markup and user-generated content
+in a way that changing markup cannot.
+
+More over, styling can declaratively respond to `@media (prefers-reduced-motion)`,
+while no such solution is available directly on markup.
+
+Adding `controls` or `noautoplay` attributes to the `<img>` element
+(along with related APIs)
+[might be worth looking into as well](../images-in-video/README.md#making-img-andor-picture-media-elements),
+but the same observations apply.
+If we were to add both `image-animation: controlled`
+and new markup-level capabilities to the `<img>` element,
+the interaction would need to be specified,
+but that is just as true as with other values.
+
+</dl>
 
 ### Possible Extensions
 

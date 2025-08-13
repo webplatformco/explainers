@@ -2,6 +2,8 @@
 
 Authors: Lea Verou, Florian Rivoal
 
+Published proposal at [whatwg/html#11554](https://github.com/whatwg/html/issues/11554)
+
 <details open>
 <summary>Contents</summary>
 

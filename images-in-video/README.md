@@ -5,7 +5,7 @@ Authors: Lea Verou, Florian Rivoal
 <details open>
 <summary>Contents</summary>
 
-1. [User Needs \& Use cases](#user-needs--use-cases)
+1. [Motivation](#motivation)
    1. [Architectural considerations](#architectural-considerations)
 2. [User research](#user-research)
    1. [Current workarounds](#current-workarounds)
@@ -31,7 +31,7 @@ Authors: Lea Verou, Florian Rivoal
    3. [Using Media Fragments](#using-media-fragments)
 </details>
 
-## User Needs & Use cases
+## Motivation
 
 In websites with user-generated content that support image embeds, such as social media, users often embed animated images, such as animated GIFs or APNG. By default, UAs autoplay and loop these images, which can be jarring for users, especially in use cases where there are multiple images on a single page (e.g. image galleries) and violates WCAG. Websites need to expose ways for users to control playback, especially around turning off autoplay and/or looping.
 
@@ -112,9 +112,14 @@ These are valuable (and may target them separately), but out of scope for this p
 
 The proposed solution is to support images (animated or not) in `<video>` elements.
 
-Video elements already have all the desired functionality, so this adds no new API surface. They support a rich API for controlling playback, UA-generated controls, and make it possible for authors to build their own controls. Proposals like [Pseudo elements for `<video>` content and controls](https://github.com/whatwg/html/issues/10507) will make it possible for authors to customize existing controls, without having to rebuild them, and proposals like [predefined play/pause invoker commands]() will make it easier to build custom playback UIs.
+Note that while there are API improvements that could make this more ergonomic, **this proposal does not propose any new API surface**.
 
-Architecturally, this seems appropriate, since animated images are essentially videos with no audio track. Their implementation details are different, but there is no difference in terms of user-facing result.
+Video elements already have all the desired functionality.
+They support a rich API for controlling playback, UA-generated controls, and make it possible for authors to build their own controls.
+Proposals like [Pseudo elements for `<video>` content and controls](https://github.com/whatwg/html/issues/10507) will make it possible for authors to customize existing controls without having to rebuild them, and proposals like [predefined play/pause invoker commands]() will make it easier to build custom playback UIs.
+
+Architecturally, this seems appropriate, since animated images are essentially videos with no audio track.
+Their implementation details may be different, but in terms of user-facing result that is no different to another codec.
 
 ### Emulating current `<img>` behavior with `<video>`
 

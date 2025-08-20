@@ -7,7 +7,7 @@ Authors: Florian Rivoal, Lea Verou
 
 1. [User Needs \& Use Cases](#user-needs--use-cases)
 2. [User Research](#user-research)
-    1. [Developer \& User signals](developer--user-signals)
+    1. [Developer \& User signals](#developer--user-signals)
     2. [Current Workarounds](#current-workarounds)
 3. [Goals](#goals)
     1. [Non-goals](#non-goals)

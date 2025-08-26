@@ -57,21 +57,32 @@ This is a very common author pain point, and authors are pretty vocal about it.
 DX-related complaints were the 3rd biggest a11y complaint in the preliminary State of HTML results 2023.
 
 @bramus did some snowball sampling research on social media (links: [Bsky](https://bsky.app/profile/did:plc:343p6xcgmvkpz5abgezlgyep/post/3lw7kzprc6c25), [Mastodon](https://front-end.social/@bramus/115016389746283451), [X](https://x.com/bramus/status/1955283107134709886)),
-asking if people would also like some alternative to using `idref`s.
-While it could be argued that the question was suggestive, the pain points are very real:
+asking:
 
-> The for attribute accepting a querySelector would be handy.
->
-> That way you could target `[name=foo]` or maybe even `& + *`
->
-> When querySelector returns multiple fields, pick first one.
-> [source](https://bsky.app/profile/rikschennink.com/post/3lwb5fvnyuc2h)
+> 🙋‍♂️❓
+> 
+> Using attributes like `for` require you to reference another element using that element’s `id`.
+> 
+> E.g. `<label for="x"></label> … <input id="x">`
+> 
+> Do you sometimes wish you had another way to refer to another element on the page, without needing to generate an id? If so, what would you want?
 
-TODO: extract more quotes
-
-[here](https://bsky.app/profile/nick-gard.bsky.social/post/3lw7mwnbl2c2n), [here](https://bsky.app/profile/emnudge.dev/post/3lw7mjpdh322e), [here](https://bsky.app/profile/awad.dev/post/3lw7un3fokk26), [here](https://bsky.app/profile/bigblind.me/post/3lw7tdyahyk2z), [here](https://bsky.app/profile/bbag.bsky.social/post/3lw7p5j2cbc2c), [here](https://front-end.social/@chriskirknielsen/115016418984599549), [here](https://front-end.social/@cwilcox808@c.im/115016999314830363), [here](https://front-end.social/@kleinfreund@mastodon.social/115016432238285991), [here](https://front-end.social/@tylersticka@social.lol/115016427837608026), [here](https://front-end.social/@mayank/115017168775422081), [here](https://x.com/DenisTRUFFAUT/status/1955316332590727651), [here](https://x.com/godwincodes/status/1955590681776591154), [here](https://x.com/myfonj/status/1955340844590067734), [here](https://x.com/vsr/status/1955293622179426741), [here](https://x.com/800147/status/1955288283631456749), …)_.
+Most authors expressed pain points, and many wished for the ability to use CSS selectors to target elements.
 
 
+@alice asked different questions:
+
+> - What are the specific pain points around using IDs?
+> - How does existing tooling address these pain points (i.e. what “cow paths” are there that we could look at?)
+> - How does existing tooling fail to adequately address those pain points?
+> - How are these pain points impacting authors’ abilities to author usable, accessible web pages?
+> - What do authors like about IDs?
+> - What design constraints should we consider for any potential solution?
+> - What is the user impact of breakages in element associations? Who is impacted? How can we minimise that risk?
+
+The results are [here](https://notes.igalia.com/XlsPwU5sQfuaWYHwhtBMtA).
+
+TBD summarize
 
 
 ## Current workarounds

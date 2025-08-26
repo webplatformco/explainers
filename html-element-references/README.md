@@ -163,5 +163,5 @@ These solutions are around using identifiers but scoping them to an ancestor ele
 - A boolean attribute on the scoping element, e.g. `<section refscope>`
 - An attribute that customizes the matching algorithm for ids, e.g. `idscope="local|global"` with no value being equivalent to `local`
 - Implicit: Just improving the matching algorithm from "get the first element with this id" to something "smarter" (e.g. the same as if `idscope` had been used on every element)
-- An explicit "export" attribute on the scoping element, inspired by `exportparts` e.g. `<section exportids="foo:bar, baz>`. Possibly paired with an `importids` attribute for the reverse.
+- An explicit "export" attribute on the scoping element, inspired by `exportparts` e.g. `<section exportids="foo:bar, baz">`. Possibly paired with an `importids` attribute for the reverse.
 - An opt-in with `exportid` attributes on the elements whose ids we want to export (with our without a value). Better locality than `exportids`.

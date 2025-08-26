@@ -1,4 +1,4 @@
-# Improving HTML Element References
+# Improving DX of HTML Element References
 
 Authors: Lea Verou, Noam Rosenthal
 

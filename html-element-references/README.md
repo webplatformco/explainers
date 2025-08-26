@@ -28,6 +28,29 @@ It also introduces unnecessary error conditions; it is a common authoring mistak
 
 This *especially* hurts accessibility, since the effects of broken references in the AT are not always obvious, and the more friction it takes to make HTML accessible, the less likely authors are to do it.
 
+## Pain points
+
+### Conflicts
+
+According to an [HTTP archive query](https://docs.google.com/spreadsheets/d/19hmR_DoeQ8k8I0f_SI9QHoZy9omU_OEp5zjP8sjB954/edit?usp=sharing), roughly 45% of all HTML responses in July 2025 had multiple occurences of the same ID.
+Correcting for declarative shadow DOM would only make a small dent in this number.
+
+Since IDs are global to the document or shadow root, and resolved in document order, having the same ID multiple times in the same document is very likely to cause conflicts.
+This kind of conflict can be a bug that reaches users, when e.g. labels don't target the correct input.
+
+### Verbosity & friction
+
+To overcome conflicts, developers have to either create some namespacing scheme that works across their entire document or shadow tree, or rely on UUIDs. At the very least, they need to add ID as a superfluous addition to an element:
+
+```html
+<form>
+  <label for=searchInput>Search</label>
+  <input type=search name=search id=searchInput>
+</form>
+```
+
+For labels in particular there is some contextual way to do this without IDs, but this doesn't necessarily scale to all the other IDREFs.
+
 ## User research
 
 This is a very common author pain point, and authors are pretty vocal about it.
@@ -55,9 +78,11 @@ TODO: extract more quotes
 
 - React `useId()`
 - Templating
+- Convention-based namespacing
+- Some management of IDs in a central location
 
 ### Goals
-
+- Reduce conflicts that arise from IDs being global
 - Reduce friction of linking to another element for authors, do not require tooling for reasonable DX
 - Improve robustness of element references (reduce broken references)
 

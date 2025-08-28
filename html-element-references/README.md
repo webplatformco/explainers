@@ -60,11 +60,11 @@ DX-related complaints were the 3rd biggest a11y complaint in the preliminary Sta
 asking:
 
 > 🙋‍♂️❓
-> 
+>
 > Using attributes like `for` require you to reference another element using that element’s `id`.
-> 
+>
 > E.g. `<label for="x"></label> … <input id="x">`
-> 
+>
 > Do you sometimes wish you had another way to refer to another element on the page, without needing to generate an id? If so, what would you want?
 
 Most authors expressed pain points, and many wished for the ability to use CSS selectors to target elements.
@@ -80,9 +80,7 @@ Most authors expressed pain points, and many wished for the ability to use CSS s
 > - What design constraints should we consider for any potential solution?
 > - What is the user impact of breakages in element associations? Who is impacted? How can we minimise that risk?
 
-The results are [here](https://notes.igalia.com/XlsPwU5sQfuaWYHwhtBMtA).
-
-TBD summarize
+The results are [here](https://notes.igalia.com/XlsPwU5sQfuaWYHwhtBMtA), summarized [below](#ids).
 
 
 ## Current workarounds
@@ -107,6 +105,49 @@ TBD
 This eases the migration path for authors and ensures existing UI libraries and other tooling that modify HTML continue to work.
 Additionally, there are use cases where the referencing desired is genuinely global (e.g. a "country" field would need to autocomplete to the same list of countries everywhere and it makes sense for it to link to a single `<datalist>`).
 - Ability to copy/paste fragments of HTML without breakage is a nice-to-have
+
+## Existing Element-Cross-Referencing Systems
+
+### IDs
+
+The target element gets a string ID, in the `id` attribute,
+which is meant to be unique within its `Document` or `ShadowRoot`.
+The source element repeats this string
+in an "IDREF" attribute tied to the purpose of the reference.
+For example, `for`, `commandfor`, `popovertarget`, `aria-activedescendant` etc.
+This creates a reference to the _first_ element with that ID in the same `Document` or `ShadowRoot`.
+"First" since authors can always break the rule that these are unique.
+
+Most of these references want to identify a single target element,
+but [`aria-labelledby`](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-labelledby)
+and [`aria-describedby`](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-describedby)
+take lists of IDs.
+
+#### Advantages
+
+* Creates [automatic JS variable references](https://html.spec.whatwg.org/multipage/nav-history-apis.html#named-access-on-the-window-object). ([@davatron5000](https://mastodon.social/@davatron5000/115049859936635912))
+* Creates a URL fragment pointing to that element. ([@gumnos](https://mastodon.bsd.cafe/@gumnos/115050068997019695))
+
+#### Disadvantages
+
+See https://notes.igalia.com/XlsPwU5sQfuaWYHwhtBMtA.
+
+* Difficult to guarantee uniqueness.
+  * Across page changes ([@gumnos](https://mastodon.bsd.cafe/@gumnos/115050068997019695))
+  * When referencing inside a component that's instantiated multiple times ([@AmeliaBR](https://front-end.social/@AmeliaBR/115050773810656300), [@theadhocracy](https://indieweb.social/@theadhocracy/115050928274082878))
+  * When combining different tools ([@AmeliaBR](https://front-end.social/@AmeliaBR/115050814509549309))
+  * When referencing across _different_ components ([@ragnar-oock](https://bsky.app/profile/ragnar-oock.bsky.social/post/3lwrwswxum226))
+    * This developer disagrees that intra-component references are difficult,
+      because JS libraries have developed workarounds.
+      ([@ragnar-oock](https://bsky.app/profile/ragnar-oock.bsky.social/post/3lwrwsxmtis26))
+  * Frequently have to append a uuid or database ID to make it prefixed but unique, which means JS required.
+    ([@davatron5000](https://mastodon.social/@davatron5000/115049859841887277))
+  * Some ways of generating unique IDs make otherwise-unmodified pages in static sites
+    appear to change on every build.
+    ([@thomasjaggi](https://bsky.app/profile/thomasjaggi.bsky.social/post/3lwsnc3rqss2t))
+* Lots of noisy duplication between properties like: href, for, aria-controls, aria-labeledby, aria-describedby, anchor-name idents, etc. Then IDs like foo-123, foo-label-123, foo-error-123, foo-tab-123, foo-tab-panel-123, etc. ([@davatron5000](https://mastodon.social/@davatron5000/115049859841887277))
+* Brittle if ID changes or wired wrong ([@davatron5000](https://mastodon.social/@davatron5000/115049859936635912))
+* ShadowDOM breaks a lot of uses. ([@AmeliaBR](https://front-end.social/@AmeliaBR/115050773810656300))
 
 ## Potential solutions
 

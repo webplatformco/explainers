@@ -51,6 +51,17 @@ To overcome conflicts, developers have to either create some namespacing scheme 
 
 For labels in particular there is some contextual way to do this without IDs, but this doesn't necessarily scale to all the other IDREFs.
 
+### Inability to reuse HTML & SVG snippets
+
+A major pain point identified around IDs is with its impact on being able to reuse existing HTML/SVG.
+For example, an existing SVG snippet might include some IDs for its internal use, e.g. for referencing filters or `<use>`.
+
+When embedding these snippets or repeating them, the IDREFs would now reference the first occurence of the snippet, or would interfere with other IDREFs in the document.
+Since the implications of this might only present themselves to accessibility-tree users, the developer might not even notice.
+
+This usually means that HTML/SVG snippets cannot be safely embedded, and developers have to funnel them through a framework or a library that produces unique IDs, potentially breaking some of the internal relations.
+Some developers don't bother doing this and end up with broken references, or avoid reusing HTML/SVG snippets altogether for this reason.
+
 ## User research
 
 This is a very common author pain point, and authors are pretty vocal about it.

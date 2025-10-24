@@ -2,6 +2,43 @@
 
 Authors: Lea Verou
 
+<details open>
+<summary>Contents</summary>
+
+1. [Use cases](#use-cases)
+2. [Prior art](#prior-art)
+   1. [Userland patterns](#userland-patterns)
+   2. [In other languages](#in-other-languages)
+   3. [Articles](#articles)
+3. [Existing proposals](#existing-proposals)
+   1. [Mixins proposal](#mixins-proposal)
+   2. [First-Class Protocols proposal](#first-class-protocols-proposal)
+4. [Definitions](#definitions)
+5. [Non-goals / Out of scope](#non-goals--out-of-scope)
+   1. [Abstract methods](#abstract-methods)
+   2. [Parameterization syntax](#parameterization-syntax)
+6. [Requirements](#requirements)
+   1. [Extending API surface of implementing class](#extending-api-surface-of-implementing-class)
+   2. [Adding side effects to existing methods](#adding-side-effects-to-existing-methods)
+   3. [Partial application should be possible after class definition](#partial-application-should-be-possible-after-class-definition)
+   4. [Static reflection](#static-reflection)
+   5. [Encapsulation](#encapsulation)
+7. [Nice to haves](#nice-to-haves)
+   1. [Single declaration of intent](#single-declaration-of-intent)
+   2. [Instance reflection](#instance-reflection)
+   3. [Use existing class primitives](#use-existing-class-primitives)
+8. [Design space](#design-space)
+   1. [1. Are mixins syntactically distinct from classes?](#1-are-mixins-syntactically-distinct-from-classes)
+   2. [2. How and where is the partial included?](#2-how-and-where-is-the-partial-included)
+   3. [3. Is composition distinct from inheritance?](#3-is-composition-distinct-from-inheritance)
+   4. [4. Do mixins operate on their own state or the full instance?](#4-do-mixins-operate-on-their-own-state-or-the-full-instance)
+   5. [5. How is the mixin's state exposed?](#5-how-is-the-mixins-state-exposed)
+   6. [6. How to handle naming conflicts?](#6-how-to-handle-naming-conflicts)
+9. [Concrete ideas / proposals](#concrete-ideas--proposals)
+
+
+</details>
+
 > [!IMPORTANT]
 > This is a work in progress. Feel free to send PRs to improve it, but this is not the time to evaluate it critically.
 

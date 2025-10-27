@@ -28,7 +28,7 @@ Authors: Lea Verou
    2. [Instance reflection](#instance-reflection)
    3. [Use existing class primitives](#use-existing-class-primitives)
 8. [Design space](#design-space)
-   1. [1. Are mixins syntactically distinct from classes?](#1-are-mixins-syntactically-distinct-from-classes)
+   1. [1. Are partials syntactically distinct from classes?](#1-are-partials-syntactically-distinct-from-classes)
    2. [2. How and where is the partial included?](#2-how-and-where-is-the-partial-included)
    3. [3. Is composition distinct from inheritance?](#3-is-composition-distinct-from-inheritance)
    4. [4. Do mixins operate on their own state or the full instance?](#4-do-mixins-operate-on-their-own-state-or-the-full-instance)
@@ -510,12 +510,12 @@ Additionally there is a DX argument here too: given that the final product of a 
 Instead of enumerating individual proposals, it may be useful to first explore the different design decisions separately.
 These fundamental decisions can be combined in different ways to produce a much larger number of proposals.
 
-### 1. Are mixins syntactically distinct from classes?
+### 1. Are partials syntactically distinct from classes?
 
-It seems clear that mixins should follow a similar syntax to classes, but how similar?
-Are mixins just classes that can be repurposed, or syntactically distinct constructs that share a lot with classes?
+It seems clear that partials should follow a similar syntax to classes, but how similar?
+Are partials just classes that can be repurposed, or syntactically distinct constructs that share a lot with classes?
 
-On one side of the spectrum, mixins could even be defined as **regular classes with their own inheritance chain** that can even be used independently.
+On one side of the spectrum, partials could even be defined as **regular classes with their own inheritance chain** that can even be used independently.
 For example,
 
 ```js
@@ -524,10 +524,11 @@ class MyButton extends HTMLButtonElement with HasIcon { /* elided */ }
 ```
 
 Pros:
-- The mixin doesn't even need to know it’s a mixin — any class can be repurposed as a mixin.
+- The partial doesn't even need to know it’s a partial — any class can be repurposed as a partial.
 - All present and future class primitives just work.
 - Implementing class can decide between inheritance or composition depending on intent.
 - Less new syntax needed.
+- More flexible, since partials can have partial-specific syntax which is not allowed in regular classes, and there can be class syntax that is not allowed in partials.
 
 On the other side, partials are syntactically distinct from classes, defined using a different keyword, e.g. `partial`, `mixin`, `trait`, etc.:
 
@@ -623,7 +624,7 @@ Worse yet, with the inheritance chain model, what happens with each `super.init(
 Just like with inheritance it is often desirable to access the parent state via `super`,
 the same need exists for mixins.
 
-In Java 8+ interfaces, this is achieved via `InterfaceName.super`.
+In [Java 8+ interfaces](#java-8-interfaces), this is achieved via `InterfaceName.super`, while plain `super` is reserved to follow the inheritance chain.
 
 ### 6. How to handle naming conflicts?
 

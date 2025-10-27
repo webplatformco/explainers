@@ -94,8 +94,8 @@ Another pattern for behavior sharing is to use separate objects that hold a refe
 
 ```js
 class Controller {
-  constructor(instance) {
-    this.instance = instance;
+  constructor(host) {
+    this.host = host;
   }
 
   foo () { /* elided */ }
@@ -829,7 +829,9 @@ Future calls to `addSideEffect()` for the same function will add side effects to
 
 This special type of function can be:
 1. A new `Function` subclass (e.g. `MutableFunction`)
-2. A `Proxy` object that wraps the original function. Slower, but more transparent.
+2. A `Proxy` object that wraps the original function. Slower [^1], but more transparent.
+
+[^1]: Is it? [This benchmark](https://jsbenchmark.com/#eyJjYXNlcyI6W3siaWQiOiJ4a3BUc1NaOEt0THo4VWR3MzduX2MiLCJjb2RlIjoiREFUQS5iMSgpIiwibmFtZSI6IlBsYWluIGNhbGwiLCJkZXBlbmRlbmNpZXMiOltdfSx7ImlkIjoicDBpUTFnSlExOWd3ZnNITEF1OElVIiwiY29kZSI6IkRBVEEuYjIoKSIsIm5hbWUiOiJQcm94eSBjYWxsIiwiZGVwZW5kZW5jaWVzIjpbXX1dLCJjb25maWciOnsibmFtZSI6IkJhc2ljIGV4YW1wbGUiLCJwYXJhbGxlbCI6dHJ1ZSwiZ2xvYmFsVGVzdENvbmZpZyI6eyJkZXBlbmRlbmNpZXMiOltdfSwiZGF0YUNvZGUiOiIvLyBtYWluIGZ1bmN0aW9uXG5sZXQgZm4gPSBmdW5jdGlvbihhKSB7IHJldHVybiBhICsgMSB9XG4vLyBzaWRlIGVmZmVjdFxubGV0IHNlID0gZnVuY3Rpb24oYSkgeyBjb25zb2xlLmxvZyhhKSB9XG5cbmxldCBiMSA9IGZ1bmN0aW9uKC4uLmFyZ3MpIHsgXG4gIGxldCByZXQgPSBSZWZsZWN0LmFwcGx5KGZuLCB0aGlzLCBhcmdzKTtcbiAgZm9yIChsZXQgcyBvZiBiMS5zZSkgUmVmbGVjdC5hcHBseShzLCB0aGlzLCBhcmdzKTtcbiAgcmV0dXJuIHJldDtcbn1cbmIxLnNlID0gW3NlXTtcblxubGV0IGIyID0gbmV3IFByb3h5KGZuLCB7IFxuICBhcHBseSh0YXJnZXQsIHRoaXNBcmcsIGFyZ3MpIHtcbiAgICBsZXQgcmV0ID0gUmVmbGVjdC5hcHBseSh0YXJnZXQsIHRoaXNBcmcsIGFyZ3MpO1xuICAgIFJlZmxlY3QuYXBwbHkoc2UsIHRoaXNBcmcsIGFyZ3MpO1xuICAgIHJldHVybiByZXQ7XG4gIH1cbn0pO1xuXG5yZXR1cm4ge2IxLCBiMn07In19) doesn't seem that definitive at all.
 
 Then, the class partial syntax will simply take care of calling this method and replacing any extended functions with their wrapped versions.
 If the implementing class does not include a base method for the function extended, a new dummy method  will be created.

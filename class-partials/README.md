@@ -819,6 +819,11 @@ If the implementing class does not include a base method for the function extend
 This is important, as we cannot expect implementing classes to implement very possible lifecycle hook.
 E.g. a web components partial may want to run code in `adoptedCallback()`, which is relatively rare for most web components to implement.
 
+While replacing references may be acceptable for class methods, it is not acceptable for constructors, as that effectively breaks the reference to the class.
+However, since constructors are generated anyway, perhaps they could be generated to be side effect permitting functions.
+This would also allow authors to access the constructor logic function separately from the class itself, which is something that is not possible today.
+This would rule out proxies as an option, for obvious compat and performance reasons.
+
 ### Syntax ideas for class partials
 
 TBD

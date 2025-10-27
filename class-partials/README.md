@@ -99,6 +99,9 @@ class Controller {
   }
 
   foo () { /* elided */ }
+
+  get bar() { /* elided */ }
+  set bar(value) { /* elided */ }
 }
 
 class Foo {
@@ -107,7 +110,15 @@ class Foo {
   }
 
   foo () {
-    this.controller.foo();
+    return this.controller.foo();
+  }
+
+  get bar() {
+    return this.controller.bar;
+  }
+
+  set bar(value) {
+    this.controller.bar = value;
   }
 }
 ```
@@ -678,6 +689,12 @@ Arbitrarily selecting a default precedence order (e.g. first or last one wins) o
 A way for the implementing class to rename certain fields when it is aware of the conflict would help alleviate the problem, but does not eliminate it entirely, because unforeseen conflicts still need to be handled in a reasonable way.
 
 In designs where overrides are handled via a last-one-wins mechanism, it can be very useful to have a means to access any overridden method (akin to `super` — or even `super` itself).
+
+Perhaps overrides could only be allowed via an explicit opt-in (e.g. an `override` keyword), to eliminate accidental naming collisions.
+
+There is also the question of _what_ is a naming collision.
+E.g. if a superclass implements a method but the implementing class does not, is that a naming collision?
+There are many use cases where a partial is pulled in to implement a method "properly" which has a stub implementation in some superclass (e.g. `toString()`, `toJSON()` etc.).
 
 ## Concrete ideas (strawmans)
 

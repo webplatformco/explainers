@@ -2,6 +2,9 @@
 
 Authors: Lea Verou
 
+> [!IMPORTANT]
+> This is a work in progress. Feel free to send PRs to improve it, but this is not the time to evaluate it critically.
+
 <details open>
 <summary>Contents</summary>
 
@@ -19,14 +22,17 @@ Authors: Lea Verou
    2. [Parameterization syntax](#parameterization-syntax)
 6. [Requirements](#requirements)
    1. [Extending API surface of implementing class](#extending-api-surface-of-implementing-class)
-   2. [Adding side effects to existing methods](#adding-side-effects-to-existing-methods)
-   3. [Partial application should be possible after class definition](#partial-application-should-be-possible-after-class-definition)
-   4. [Static reflection](#static-reflection)
-   5. [Encapsulation](#encapsulation)
+   2. [Operate on prototypes, not instances](#operate-on-prototypes-not-instances)
+   3. [Adding side effects to existing methods](#adding-side-effects-to-existing-methods)
+   4. [It should be possible to apply partials to an existing class](#it-should-be-possible-to-apply-partials-to-an-existing-class)
+   5. [Static reflection](#static-reflection)
+   6. [Encapsulation](#encapsulation)
 7. [Nice to haves](#nice-to-haves)
    1. [Single declaration of intent](#single-declaration-of-intent)
    2. [Instance reflection](#instance-reflection)
    3. [Use existing class primitives](#use-existing-class-primitives)
+   4. [Reversibility](#reversibility)
+   5. [Declarative class syntax](#declarative-class-syntax)
 8. [Design space](#design-space)
    1. [1. Are partials syntactically distinct from classes?](#1-are-partials-syntactically-distinct-from-classes)
    2. [2. How and where is the partial included?](#2-how-and-where-is-the-partial-included)
@@ -34,17 +40,17 @@ Authors: Lea Verou
    4. [4. Do mixins operate on their own state or the full instance?](#4-do-mixins-operate-on-their-own-state-or-the-full-instance)
    5. [5. How is the mixin's state exposed?](#5-how-is-the-mixins-state-exposed)
    6. [6. How to handle naming conflicts?](#6-how-to-handle-naming-conflicts)
-9. [Concrete ideas / proposals](#concrete-ideas--proposals)
+9. [Concrete ideas (strawmans)](#concrete-ideas-strawmans)
+   1. [Function side effects](#function-side-effects)
+   2. [Syntax ideas for class partials](#syntax-ideas-for-class-partials)
 
 
 </details>
 
-> [!IMPORTANT]
-> This is a work in progress. Feel free to send PRs to improve it, but this is not the time to evaluate it critically.
-
 This document is currently an exploration of the problem and design space, and does not yet propose any specific solution.
 
-To avoid assumptions about how specific patterns work, this explainer avoids using terms like _mixins_, _traits_, _protocols_, etc. and instead uses the more general term _partials_.
+> [!NOTE]
+> To avoid assumptions about specific patterns, this document avoids using terms like _mixins_, _traits_, _protocols_, etc. and instead uses the more general term _partials_ which is meant to encompass all of them.
 
 ## Use cases
 
@@ -108,6 +114,10 @@ class Foo {
 
 The Web Components [`ElementInternals` API](https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals) is an example of this pattern in the web platform.
 Lit even has a [Controller primitive](https://lit.dev/docs/composition/controllers/) to facilitate this pattern.
+
+Pros:
+- Separate state and inheritance chain makes it very easy to reason about
+- Can be added and removed at any time
 
 Problems:
 - No way to add API surface to the class, so use cases that need it involve a lot of repetitive glue code
@@ -398,10 +408,20 @@ Cons:
 
 Follows the language’s current design pattern for implementing certain mixins (`Symbol.Iterator` etc).
 
+Pros:
+- Paves the cowpaths of an existing language pattern
+- Allows for post-hoc extension
+
+Cons:
+- No way to extend existing methods, treats all naming collisions as errors.
+- Restricted to prototype fields and methods (?)
+- Author intent needs to be duplicated: once to specify the required symbol and once to call `Protocol.implement()` to apply it.
+
 ## Definitions
 
 In the following, we use these terms:
 - **Implementing class**: The class _using_ the mixin.
+- **Partials**: A generic concept that is meant to encompass all possible patterns for abstracting class behaviors, including mixins, traits, protocols, etc.
 
 ## Non-goals / Out of scope
 
@@ -424,6 +444,10 @@ given the dynamic nature of the language, they can always be implemented as a fu
 Many of the use cases for partials need to extend the API surface of the implementing class (new properties and methods).
 While most use cases are around instance fields, extending statics should also be supported.
 
+### Operate on prototypes, not instances
+
+All API surface extension should be done on the class prototype, not individual instances, both for performance reasons and to make introspection easier.
+
 ### Adding side effects to existing methods
 
 Besides adding new API surface, partials need to be able to extend existing methods with new behavior.
@@ -438,13 +462,15 @@ so perhaps this should be opt-in, via some kind of syntax or annotation to decla
 
 These side effects would run in a deterministic order, either before or after the implementing class's method (if one exists).
 
-### Partial application should be possible after class definition
+### It should be possible to apply partials to an existing class
 
 For many use cases, it is _essential_ to be able to extend a class _after_ it has been defined.
 
 One of these use cases is [custom attributes](https://github.com/w3c/tpac2025-breakouts/issues/46), which effectively add partials to existing element classes (typically `HTMLElement`), and this can happen at any point in time.
 
-Designs based on subclass factories do not support this, whereas protocols do.
+But even for other use cases, being able to apply partials to an existing class decouples them, and makes it possible to develop them independently, without either having to know about the other.
+
+Designs based on [subclass factories](#subclass-factories-mixins) do not support this, whereas [protocols](#first-class-protocols-proposal) do.
 
 ### Static reflection
 
@@ -454,6 +480,11 @@ It SHOULD be possible to test whether a given class implements a partial, possib
 
 Partials need to be able to have their own encapsulated state that is not exposed to the implementing class.
 This is important for UAs to be able to expose partials that userland code can use without having to expose their internals.
+
+It seems reasonable that partials should not have access to private fields of the implementing class, since they may be developed via entirely separate entities.
+This is also the case today for inheritance.
+For cooperative partials, authors can always use naming conventions.
+If down the line, the language gets `protected` fields, partials could have access to those.
 
 ## Nice to haves
 
@@ -505,6 +536,15 @@ E.g.
 
 Additionally there is a DX argument here too: given that the final product of a partial is a class, the closer the partial definition is to that class, the easier it is to write (see [natural mapping](https://en.wikipedia.org/wiki/Natural_mapping_(interface_design))).
 
+### Reversibility
+
+Since partials can be added after the fact, it would be nice if they could be removed as well.
+This would allow dynamically applying them based on some condition, and later removing them when a condition is no longer met.
+
+### Declarative class syntax
+
+While being able to apply partials to an existing class is a core requirement, there are many cases where partials are applied as mixins during class definition time, and it would be good to have a nice declarative syntax for it.
+
 ## Design space
 
 Instead of enumerating individual proposals, it may be useful to first explore the different design decisions separately.
@@ -540,7 +580,7 @@ class MyButton extends HTMLButtonElement with HasIcon {}
 This is the direction most languages seem to have gone with.
 
 This permits more syntactic flexibility: partials can have partial-specific syntax which is not allowed in regular classes, and there can be class syntax that is not allowed in partials.
-For example, there can be a different keyword for the mixin’s own state and inheritance chain, and a different one for the eventual object instance, or keywords to define how fields and methods are combined with those of the implementing class and/or other partials.
+For example, there can be a different keyword for the partial’s own state and inheritance chain, and a different one for the eventual object instance, or keywords to define how fields and methods are combined with those of the implementing class and/or other partials.
 
 There is also the possibility of hybrids:
 - An interesting pattern is seen in [Dart](#dart-mixins), which supports both `mixin` and `mixin class` as distinct concepts.
@@ -639,6 +679,146 @@ A way for the implementing class to rename certain fields when it is aware of th
 
 In designs where overrides are handled via a last-one-wins mechanism, it can be very useful to have a means to access any overridden method (akin to `super` — or even `super` itself).
 
-## Concrete ideas / proposals
+## Concrete ideas (strawmans)
+
+There are two components to addressing the requirements with a concrete proposal:
+1. Function side effects: How to extend the methods in the implementing class with new behavior?
+2. Partial syntax: How to declare and apply partials to a class?
+
+### Function side effects
+
+Many use cases require the ability to mix in partials to an existing class, which is why it’s listed as a core requirement above.
+[Protocols](#first-class-protocols-proposal) allow post-hoc extension, but treat all naming conflicts as errors.
+However, for many use cases the ability to add side effects to existing methods is crucial.
+This includes all cases where functions are used as lifecycle hooks, such as all the web components use cases.
+While it could be argued that ideally, a pub/sub mechanism would be more suitable and naturally composable, the reality remains that this is a widely used pattern.
+
+[Subclass factories](#subclass-factories-mixins) support extending methods via inheritance, but this is not in-place and requires all side effects to be declared at class definition time.
+
+Therefore, we need some way to add side effects to existing functions (both methods and accessors), either in-place (preserving references) or by creating a new function which can be extended with side effects.
+
+Neither of these needs to be specific to partials, depending on the design, they can be implemented as broader features of `Function` objects.
+
+Below is a detailed exploration of the design space for function side effects, from the least controversial to the most controversial design decisions.
+
+#### Side effect context and arguments
+
+It seems reasonable that side effects would be called with the **same context and arguments as the original function body**.
+
+#### Restricting side effects to void methods
+
+Given that the primary use case for extending existing methods is adding side effects to lifecycle hooks, it appears that it is probably acceptable to simply **ignore return values**, resolving one of the big open questions around designs that allow function composition.
+
+#### Side effect execution order
+
+Another question is **_when_ are side effects executed?**
+
+Some things are obvious:
+- Side effects should be executed in the order they were added.
+- You shouldn't be able to add the same side effect twice.
+
+But are they executed **before or after the original function body?**
+Or do we expose ways to do either?
+
+Ideally, side effects should be independent, both from each other, and from the original function body, so it seems counter-intuitive to expose too much control over the execution order.
+That said, there is this common pattern:
+
+```js
+class B extends A {
+  // ...
+  foo() {
+    super.foo();
+    // ideally we want side effects to be executed here
+    // (foo body)
+  }
+}
+```
+
+If we go with the conceptual model where partials sit between the implementing class and the superclass, then side effects should be executed before the original function body, but after the superclass method.
+But how to define this more broadly, given that the super method can be called at any point?
+That seems like a can of worms best avoided.
+
+However, if side effects are executed _after_ the function body, then authors can always add the side effects to the super method, checking the instance's prototype chain:
+
+```js
+A.prototype.foo.addSideEffect(function () {
+  if (this instanceof B) {
+    // ...
+  }
+})
+```
+
+Running side effects after the function body may also make it easier to explain why their return values are ignored.
+
+#### Can side effects be removed and/or introspected?
+
+Another open question is around **reflection**.
+To what extent can side effects be inspected and/or removed?
+
+On one side of the spectrum, we could have side effects be a public array of functions that can be manipulated at will.
+
+```js
+let a = () => { console.log('a'); }
+let sideEffect = () => { console.log('side effect'); }
+a(); // logs 'a'
+a[Function.sideEffects].push(sideEffect);
+a(); // logs 'side effect' and then 'a'
+a[Function.sideEffects].splice(0, 1);
+a(); // logs 'a'
+```
+
+This provides maximum flexibility, but removes all guarantees.
+Essentially, all bets are off.
+Even if a given partial is applied, there is no guarantee that its side effects will be executed.
+At the very least the property should be non-writable so that authors cannot simply overwrite the array.
+
+On the other side of the spectrum, there is total opacity:
+side effects are added through a method, and cannot be inspected or removed,
+they are effectively swallowed by the function and there is no return from there (pun not intended).
+
+```js
+a(); // logs 'a'
+a.addSideEffect(sideEffect);
+a(); // logs 'side effect' and then 'a'
+```
+
+An intermediate approach might be something like a `WeakSet` of functions:
+
+```js
+let a = () => { console.log('a'); }
+let sideEffect = () => { console.log('side effect'); }
+a(); // logs 'a'
+a[Function.sideEffects].add(sideEffect);
+a(); // logs 'side effect' and then 'a'
+a[Function.sideEffects].delete(sideEffect); // need reference to remove
+a(); // logs 'a'
+```
+
+Then, mutating side effects requires a reference to them, restricting destructive operations.
+This also ensures that the same side effect cannot be added twice without additional logic.
+Devtools can always wrap the method to log calls so that it can trace methods appropriately.
+
+#### In-place vs immutability-preserving
+
+That is probably the hairiest part of the design space.
+The ability to add side effects in place, to any function, without breaking references to it can be incredibly powerful for a number of use cases extending beyond class partials and allows for class partials that are minimally invasive.
+
+It does break assumptions around immutability, but per the [Priority of Constituencies](https://www.w3.org/TR/design-principles/#priority-of-constituencies), philosophical purity is secondary to author needs.
+
+But if in-place side effects are too controversial, another idea that preserves immutability is to restrict the ability to have a mutable list of side effects to a **special function type**.
+Adding side effects to a function would be done through a call to a memoized `Function` method, e.g. `Function.prototype.addSideEffect()`.
+The first time the method is called for a given function, a new such function is created that wraps the original function, adds the side effects, and returns it.
+Future calls to `addSideEffect()` for the same function will add side effects to the same wrapped function, and return it.
+
+This special type of function can be:
+1. A new `Function` subclass (e.g. `MutableFunction`)
+2. A `Proxy` object that wraps the original function. Slower, but more transparent.
+
+Then, the class partial syntax will simply take care of calling this method and replacing any extended functions with their wrapped versions.
+If the implementing class does not include a base method for the function extended, a new dummy method  will be created.
+This is important, as we cannot expect implementing classes to implement very possible lifecycle hook.
+E.g. a web components partial may want to run code in `adoptedCallback()`, which is relatively rare for most web components to implement.
+
+### Syntax ideas for class partials
 
 TBD

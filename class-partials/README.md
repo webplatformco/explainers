@@ -10,40 +10,41 @@ Authors: Lea Verou
 
 1. [Use cases](#use-cases)
 2. [Prior art](#prior-art)
-   1. [Userland patterns](#userland-patterns)
-   2. [Other languages](#other-languages)
+	1. [Userland patterns](#userland-patterns)
+	2. [Other languages](#other-languages)
 3. [Resources](#resources)
 4. [Existing proposals](#existing-proposals)
-   1. [Mixins proposal](#mixins-proposal)
-   2. [First-Class Protocols proposal](#first-class-protocols-proposal)
+	1. [Mixins proposal](#mixins-proposal)
+	2. [First-Class Protocols proposal](#first-class-protocols-proposal)
+	3. [Decorators proposal](#decorators-proposal)
 5. [Definitions](#definitions)
 6. [Non-goals / Out of scope](#non-goals--out-of-scope)
-   1. [Abstract methods](#abstract-methods)
-   2. [Parameterization syntax](#parameterization-syntax)
+	1. [Abstract methods](#abstract-methods)
+	2. [Parameterization syntax](#parameterization-syntax)
 7. [Requirements](#requirements)
-   1. [Extending API surface of implementing class](#extending-api-surface-of-implementing-class)
-   2. [Operate on prototypes, not instances](#operate-on-prototypes-not-instances)
-   3. [Adding side effects to existing methods](#adding-side-effects-to-existing-methods)
-   4. [It should be possible to apply partials to an existing class](#it-should-be-possible-to-apply-partials-to-an-existing-class)
-   5. [Static reflection](#static-reflection)
-   6. [Encapsulation](#encapsulation)
+	1. [Extending API surface of implementing class](#extending-api-surface-of-implementing-class)
+	2. [Operate on prototypes, not instances](#operate-on-prototypes-not-instances)
+	3. [Adding side effects to existing methods](#adding-side-effects-to-existing-methods)
+	4. [It should be possible to apply partials to an existing class](#it-should-be-possible-to-apply-partials-to-an-existing-class)
+	5. [Static reflection](#static-reflection)
+	6. [Encapsulation](#encapsulation)
 8. [Nice to haves](#nice-to-haves)
-   1. [Single declaration of intent](#single-declaration-of-intent)
-   2. [Instance reflection](#instance-reflection)
-   3. [Use existing class primitives](#use-existing-class-primitives)
-   4. [Reversibility](#reversibility)
-   5. [Declarative class syntax](#declarative-class-syntax)
+	1. [Single declaration of intent](#single-declaration-of-intent)
+	2. [Instance reflection](#instance-reflection)
+	3. [Use existing class primitives](#use-existing-class-primitives)
+	4. [Reversibility](#reversibility)
+	5. [Declarative class syntax](#declarative-class-syntax)
 9. [Design space](#design-space)
-   1. [1. Are partials syntactically distinct from classes?](#1-are-partials-syntactically-distinct-from-classes)
-   2. [2. How and where is the partial included?](#2-how-and-where-is-the-partial-included)
-   3. [3. Is composition distinct from inheritance?](#3-is-composition-distinct-from-inheritance)
-   4. [4. Do partials operate on their own state or the full composed instance?](#4-do-partials-operate-on-their-own-state-or-the-full-composed-instance)
-   5. [5. Can the partial's state be accessed from the implementing class?](#5-can-the-partials-state-be-accessed-from-the-implementing-class)
-   6. [6. How to handle naming conflicts?](#6-how-to-handle-naming-conflicts)
-   7. [7. Are partials inherited?](#7-are-partials-inherited)
+	1. [1. Are partials syntactically distinct from classes?](#1-are-partials-syntactically-distinct-from-classes)
+	2. [2. How and where is the partial included?](#2-how-and-where-is-the-partial-included)
+	3. [3. Is composition distinct from inheritance?](#3-is-composition-distinct-from-inheritance)
+	4. [4. Do partials operate on their own state or the full composed instance?](#4-do-partials-operate-on-their-own-state-or-the-full-composed-instance)
+	5. [5. Can the partial's state be accessed from the implementing class?](#5-can-the-partials-state-be-accessed-from-the-implementing-class)
+	6. [6. How to handle naming conflicts?](#6-how-to-handle-naming-conflicts)
+	7. [7. Are partials inherited?](#7-are-partials-inherited)
 10. [Concrete ideas (strawmans)](#concrete-ideas-strawmans)
-    1. [Function side effects](#function-side-effects)
-    2. [Syntax ideas for class partials](#syntax-ideas-for-class-partials)
+	 1. [Function side effects](#function-side-effects)
+	 2. [Syntax ideas for class partials](#syntax-ideas-for-class-partials)
 
 
 </details>
@@ -59,18 +60,19 @@ The high-level use case for multiple inheritance is well-known: repeated logic /
 
 * Composable `EventTarget`
 * Web Components
-  * Implement HTML custom attributes that can be added on any element at any point in time
-  * Browser-provided composable partials can also serve as an alternative to [`ElementInternals.type`](https://github.com/whatwg/html/issues/11061)
+	* Implement HTML custom attributes that can be added on any element at any point in time
+	* Browser-provided composable partials can also serve as an alternative to [`ElementInternals.type`](https://github.com/whatwg/html/issues/11061)
 * ...TBD...
 
 ## Prior art
 
 ### Userland patterns
 
-See [Prior art](prior-art.md#userland-patterns) for a detailed exploration of the three existing userland patterns:
+See [Prior art](prior-art.md#userland-patterns) for a detailed exploration of the existing userland patterns:
 1. [Subclass factories (mixins)](prior-art.md#subclass-factories-mixins)
 2. [Controllers](prior-art.md#controllers)
 3. [Prototype mutations](prior-art.md#prototype-mutations)
+4. [Instance mutations](prior-art.md#instance-mutations)
 
 ### Other languages
 
@@ -110,6 +112,53 @@ Cons:
 - No way to extend existing methods, treats all naming collisions as errors.
 - Restricted to prototype fields and methods (?)
 - Author intent needs to be duplicated: once to specify the required symbol and once to call `Protocol.implement()` to apply it.
+
+### [Decorators proposal](https://github.com/tc39/proposal-decorators)
+
+It could be argued that class decorators are a form of partial, as one could apply a decorator to a class to add traits to it through subclassing.
+
+```js
+function addVersion(version: string) {
+	return (value, { addInitializer }) => {
+		// Post-define hook: add a static property at runtime
+		addInitializer(function() {
+			Object.defineProperty(this, "version", { value: version });
+		});
+	};
+}
+
+function Mixin(value) {
+	// Replace the class with a subclass that adds a method
+	return class extends value {
+		speak() {
+			super.speak();
+			console.log("Hello from decorator");
+		}
+	};
+}
+
+@addVersion("1.0.0")
+@Mixin
+class Foo {
+	speak() {
+		console.log("Hello from class");
+	}
+}
+
+console.log(Foo.version); // "1.0.0"
+const foo = new Foo();
+foo.speak(); // "Hello from class" "Hello from decorator"
+```
+
+There are two ways for decorators to add/modify the class's API surface:
+1. Return a new subclass of the original class
+2. Use `addInitializer()` to do stuff with the original class
+
+However, these are essentially a nicer, more declarative way to accomplish the same as one can accomplish using existing userland patterns:
+1. Return a new subclass of the original class: basically a better way to do [subclass factories](prior-art.md#subclass-factories-mixins).
+2. Use `addInitializer()` to do stuff with the original class: basically a better way to do [prototype mutations](prior-art.md#prototype-mutations).
+
+Additionally, while the mixin _application_ is declarative, the mixin logic is still very imperative, making it impossible to disentangle where each part comes from.
 
 ## Definitions
 
@@ -202,8 +251,8 @@ function getSupers (Class) {
 	let classes = [];
 
 	do {
-    classes.unshift(Class);
-    Class = Object.getPrototypeOf(Class);
+		classes.unshift(Class);
+		Class = Object.getPrototypeOf(Class);
 	} while (Class && Class !== Function.prototype)
 
 	return classes;
@@ -336,21 +385,21 @@ But suppose you have two partials, each defining an `init()` method, which is ca
 
 ```js
 class M1 {
-  init() {
-    super.init();
-    // ...
-  }
+	init() {
+		super.init();
+		// ...
+	}
 }
 
 class M2 {
-  init() {
-    super.init();
-    // ...
-  }
+	init() {
+		super.init();
+		// ...
+	}
 }
 
 class A extends B with M1, M2 {
-  // ...
+	// ...
 }
 ```
 
@@ -440,12 +489,12 @@ That said, there is this common pattern:
 
 ```js
 class B extends A {
-  // ...
-  foo() {
-    super.foo();
-    // ideally we want side effects to be executed here
-    // (foo body)
-  }
+	// ...
+	foo() {
+		super.foo();
+		// ideally we want side effects to be executed here
+		// (foo body)
+	}
 }
 ```
 
@@ -457,9 +506,9 @@ However, if side effects are executed _after_ the function body, then authors ca
 
 ```js
 A.prototype.foo.addSideEffect(function () {
-  if (this instanceof B) {
-    // ...
-  }
+	if (this instanceof B) {
+		// ...
+	}
 })
 ```
 

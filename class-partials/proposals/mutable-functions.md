@@ -2,44 +2,231 @@
 
 ## Motivation
 
-Many [partials](..) use cases require the ability to mix in partials to an existing class, which is why it’s listed as a [core requirement](../#it-should-be-possible-to-apply-partials-to-an-existing-class).
+Applying partials to an existing class after class definition, is listed as a [core requirement](../#it-should-be-possible-to-apply-partials-to-an-existing-class).
 
-[Protocols](../prior-art.md#first-class-protocols-proposal) allow post-hoc extension, but treat all naming conflicts as errors, while [subclass factories](../prior-art.md#subclass-factories-mixins) sidestep this issue by piggybacking on inheritance.
+Regardless of whether composition is automatic or opt-in, the question of how to implement it remains open.
 
 In JS, functions are currently **immutable** in terms of logic.
 While the function objects themselves are mutable, the function's logic is not.
-There is no way to intercept calls to a function and add side effects or override return values without creating a new function.
+There is no way to intercept calls to a function (even in a `Function` subclass!) and add side effects or override return values without creating a new function.
 
-However, for many use cases the ability to add side effects to **existing methods** without breaking references to them, is crucial.
-This includes all cases where **functions are used as lifecycle hooks**, such as all the web components use cases.
-While it could be argued that ideally, a pub/sub mechanism would be more suitable and naturally composable for many of these use cases, this doesn't change the fact that it is a widely used pattern.
-And it could be argued that effectively, OOP inheritance is also an expression of this pattern: authors can schedule initialization logic to run at instance creation time by adding it to a method with a particular name.
+However, for many use cases, extensibility is desirable, or even crucial.
+
+## Scope
+
+Ideally, the least obtrusive option would be for _any_ function to be extensible.
+However, this is likely infeasible, both for security and performance reasons.
+For one, it would allow tracking every single function call and object creation in the realm.
+
+Perhaps a reasonable compromise could be a dedicated callable type that acts as a _mutable function_ by supporting one or more arrays of _constituent functions_ that are called at predetermined points in its execution (e.g. before or after).
+
+The constituent functions do not need to be mutable functions themselves, any callable will do.
+
+This special callable type can be created directly via a literal, implicitly through certain methods (see below), or even via its constructor (which may be more or less useful depending on whether we can [improve function constructors](function-constructor.md)).
+
+### Composable function literals
+
+This special type can be created directly as a literal, through a keyword, e.g. `composable`, `mutable`, `extensible` etc.
+
+```js
+composable function foo() {
+	// ...
+}
+
+class A {
+	composable bar() {
+		// ...
+	}
+}
+```
+
+As with all function keywords, this can be combined with other keywords to create mutable functions of different types (e.g. `async composable function () {}`).
+
+### `Function.prototype.extend()` (name TBB)
+
+While regular functions will remain immutable, we can add helper functions to make the process of wrapping an immutable function with a mutable function as seamless and performant as possible.
+
+To extend an existing function, there could be a memoized `Function.prototype` method (e.g. `Function.prototype.extend(...constituents)`) which follows the [Multiton pattern](https://en.wikipedia.org/wiki/Multiton_pattern), i.e. never creates more than one new mutable function for the same input function:
+- If called on a mutable function, it extends it and returns the mutable function.
+- If called on an immutable function, it checks if a mutable function has been created for it
+  - If it has, it extends it and returns the mutable function.
+  - If it hasn't, it creates a new mutable function for it, extends it with the input constituents, and returns it.
+
+Something like this:
+
+```js
+class ComposableFunction extends Function {
+	/**
+	 * @param {Function[]} constituents
+	 * @returns {ComposableFunction}
+	 */
+	#constituents = [];
+
+	extend (...constituents) {
+		if (constituents.length > 0) {
+			this.#constituents.push(...constituents);
+		}
+
+		return this;
+	}
+}
+
+class Function {
+	extend (...constituents) {
+		if (!this[Function.mutable]) {
+			// See function-constructor.md
+			this[Function.mutable] = new ComposableFunction(this);
+		}
+
+		return this[Function.mutable].extend(...constituents);
+	}
+}
+```
+
+As a result, this can break references to the original function at most once, and class methods can be defensively defined as extensible so that references never break since there is no downside to that other than the minor performance cost of the additional data structure.
+
 
 ## Design space
 
-There are two main ways to add side effects to existing functions:
-1. In-place (preserving references)
-2. By creating a new function which can be extended with side effects.
+### Nomenclature
 
-Neither of these needs to be specific to partials, depending on the design, they can be implemented as broader features of `Function` objects.
+Some options (format: `keyword` -> `Class`):
+- `composable function () {}` → `ComposableFunction`
+- `extensible function () {}` → `ExtensibleFunction`
+- `mutable function () {}` → `MutableFunction`
 
-Below is a detailed exploration of the design space, from the least controversial to the most controversial design decisions.
+### API shape
 
-#### Side effect context and arguments
+> [!NOTE]
+> Using an array for side effects in the examples below for simplicity,
+> not because it's the best option
 
-It seems reasonable that side effects would be called with the **same context and arguments as the original function body**.
+Ideally, this would be a `Function` subclass, something like this:
 
-#### Restricting side effects to void methods
+```js
+class ComposableFunction extends Function {
+	#sideEffects = [];
 
-Given that the primary use case for extending existing methods is adding side effects to lifecycle hooks, it appears that it is probably acceptable to simply **ignore return values**, resolving one of the big open questions around designs that allow function composition.
+	get sideEffects() {
+		return this.#sideEffects;
+	}
 
-#### Side effect execution order
+	// Fictional
+	[[Call]] (thisArg, ...args) {
+		let returnValue = super.call(thisArg, ...args);
+		for (const fn of this.#sideEffects) {
+			fn.call(thisArg, ...args);
+		}
+		return returnValue;
+	}
+}
+```
 
-Another question is **_when_ are side effects executed?**
+This also means *existing* functions can be "upgraded" to be mutable if we're willing to take the performance hit of `Object.setPrototypeOf()`.
+
+Alternatively, it would be a new callable object that calls the original function and then the constituent functions.
+
+```js
+class ComposableFunction {
+	#sideEffects = [];
+
+	constructor(body) {
+		Object.defineProperty(this, 'body', {value: body});
+	}
+
+	get constituents() {
+		return this.#sideEffects;
+	}
+
+	// Fictional
+	[[Call]] (context, ...args) {
+		let returnValue = this.body.call(context, ...args);
+		for (const fn of this.#sideEffects) {
+			fn.call(context, ...args);
+		}
+		return returnValue;
+	}
+}
+```
+
+Or perhaps it would not be a new object type at all but just a special `Function` instance.
+
+```js
+Function.prototype.extend = function (...sideEffects) {
+	if (!this[Function.mutable]) {
+		let body = this;
+		this[Function.mutable] = Object.assign(function (...args) {
+			let ret = body.apply(this, args);
+
+			for (let sideEffect of sideEffects) {
+				sideEffect.apply(this, args);
+			}
+
+			return ret;
+		}, {
+			body: this,
+			sideEffects: new Set(),
+		});
+	}
+
+	for (const sideEffect of sideEffects) {
+		this[Function.mutable].sideEffects.add(sideEffect);
+	}
+
+	return this[Function.mutable];
+};
+```
+
+Or maybe it’s not even a different instance, just a `Proxy` over the original function:
+
+```js
+Function.prototype.extend = function (...sideEffects) {
+	if (!this[Function.mutable]) {
+		let body = this;
+		this[Function.mutable] = new Proxy(this, {
+			apply: function (target, thisArg, args) {
+				let ret = target.apply(thisArg, args);
+
+				for (let sideEffect of sideEffects) {
+					sideEffect.apply(thisArg, args);
+				}
+
+				return ret;
+			}
+		});
+	}
+
+	for (const sideEffect of sideEffects) {
+		this[Function.mutable].sideEffects.add(sideEffect);
+	}
+
+	return this[Function.mutable];
+};
+```
+
+This has the advantage of more transparently mirroring the original function (e.g. any properties specified on it are still present).
+Downsides include the usual performance penalty from using proxies.
+
+### Return values
+
+Is extension restricted to side effects, or can constituent functions override return values?
+
+It does seem that the vast majority of use cases are around adding side effects to existing functions.
+Are there enough use cases to warrant the additional complexity of allowing constituent functions to override return values?
+
+If not, the entire feature could be framed around side effects.
+
+#### Constituent context and arguments
+
+It seems reasonable that constituent functions would be called with the **same context and arguments as the original function body**.
+
+#### Execution order
+
+Another question is **_when_ are constituent functions executed?**
 
 Some things are obvious:
-- Side effects should be executed in the order they were added.
-- You shouldn't be able to add the same side effect twice.
+- Constituent functions should be executed in the order they were added.
+- You shouldn't be able to add the same constituent function twice.
 
 But are they executed **before or after the original function body?**
 Or do we expose ways to do either?
@@ -52,7 +239,7 @@ class B extends A {
 	// ...
 	foo() {
 		super.foo();
-		// ideally we want side effects to be executed here
+		// --> ideally we want side effects to be executed here <--->
 		// (foo body)
 	}
 }
@@ -62,7 +249,7 @@ If we go with the conceptual model where partials sit between the implementing c
 But how to define this more broadly, given that the super method can be called at any point?
 That seems like a can of worms best avoided.
 
-However, if side effects are executed _after_ the function body, then authors can always add the side effects to the super method, checking the instance's prototype chain:
+However, if side effects are executed _after_ the function body, then authors can always add the side effects to the super method, gated behind a check:
 
 ```js
 A.prototype.foo.addSideEffect(function () {
@@ -122,10 +309,7 @@ Then, mutating side effects requires a reference to them, restricting destructiv
 This also ensures that the same side effect cannot be added twice without additional logic.
 Devtools can always wrap the method to log calls so that it can trace methods appropriately.
 
-#### Return values
-
-TBD
-
+<!--
 #### In-place vs immutability-preserving
 
 That is probably the hairiest part of the design space.
@@ -170,3 +354,4 @@ While replacing references may be acceptable for class methods, it is not accept
 However, since constructors are generated anyway, perhaps they could be generated to be side effect permitting functions.
 This would also allow authors to access the constructor logic function separately from the class itself, which is something that is not possible today.
 This would rule out proxies as an option, for obvious compat and performance reasons.
+-->

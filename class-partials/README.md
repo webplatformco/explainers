@@ -24,9 +24,9 @@ Authors: Lea Verou
 7. [Requirements](#requirements)
 	1. [Extending API surface of implementing class](#extending-api-surface-of-implementing-class)
 	2. [Operate on prototypes, not instances](#operate-on-prototypes-not-instances)
-	3. [Adding side effects to existing methods](#adding-side-effects-to-existing-methods)
-	4. [It should be possible to apply partials to an existing class](#it-should-be-possible-to-apply-partials-to-an-existing-class)
-	5. [Static reflection](#static-reflection)
+	3. [It should be possible to apply partials in-place](#it-should-be-possible-to-apply-partials-in-place)
+	4. [Function composition](#function-composition)
+	5. [Static introspection](#static-introspection)
 	6. [Encapsulation](#encapsulation)
 8. [Nice to haves](#nice-to-haves)
 	1. [Single declaration of intent](#single-declaration-of-intent)
@@ -191,21 +191,7 @@ While most use cases are around instance fields, extending statics should also b
 
 All API surface extension should be done on the class prototype, not individual instances, both for performance reasons and to make introspection easier.
 
-### Adding side effects to existing methods
-
-Besides adding new API surface, partials need to be able to extend existing methods with new behavior.
-This is typically needed for APIs that use methods as lifecycle hooks, such as web components.
-
-In nearly all of these cases, the need is to add side effects to existing void methods, not to modify
-return values.
-For most use cases that actually _do_ need to affect return values, it seems like subclassing (or subclass factories) might be a better fit.
-
-However, it is important to **distinguish intentional composition from unintentional naming collisions**,
-so perhaps this should be opt-in, via some kind of syntax or annotation to declare a method as a side effect that can be composed with others of the same name.
-
-These side effects would run in a deterministic order, either before or after the implementing class's method (if one exists).
-
-### It should be possible to apply partials to an existing class
+### It should be possible to apply partials in-place
 
 For many use cases, it is _essential_ to be able to extend a class _after_ it has been defined.
 
@@ -213,11 +199,45 @@ One of these use cases is [custom attributes](https://github.com/w3c/tpac2025-br
 
 But even for other use cases, being able to apply partials to an existing class decouples them, and makes it possible to develop them independently, without either having to know about the other.
 
-Designs based on [subclass factories](prior-art.md#subclass-factories-mixins) do not support this, whereas [protocols](#first-class-protocols-proposal) do.
+No design based on [subclassing](prior-art.md#subclass-factories-mixins) can support this.
+Out of existing proposals, only [protocols](#first-class-protocols-proposal) allow in-place application.
 
-### Static reflection
+### Function composition
 
-It SHOULD be possible to test whether a given class implements a partial, possibly via a new operator (`implements`? `uses`?).
+Besides adding new API surface, partials need to be able to seamlessly extend existing methods with new behavior.
+
+[subclass factories](../prior-art.md#subclass-factories-mixins) sidestep function composition by piggybacking on inheritance which has established, explicit mechanisms for this.
+But any non-inheritance-based design needs a way to compose functions.
+
+On a high level, the options are:
+1. **Error**: Treat all naming conflicts as errors.
+This is what [Protocols](../prior-art.md#first-class-protocols-proposal) do.
+1. **Function precedence**: Pick the function to execute based on some precedence algorithm, ignore all others. This is how many languages handle naming conflicts between class partials.
+3. **Return value precedence**: Execute all functions, pick the return value based on some algorithm.
+
+Treating all naming conflicts as errors is a no-go, as it should be possible to develop partials independently, without having to be aware of the API of every other partial.
+
+Additionally, beyond accidental collisions there is also often **composition intent**, where a partial is fully aware that the implementing class may have a method with the same name, and wants to compose with it.
+A common reason for this is when **functions are used as lifecycle hooks**.
+For example, in Web Components, authors react to component lifecycle events by running code on methods like `connectedCallback()`, `disconnectedCallback()`, `attributeChangedCallback()`, etc.
+While it could be argued that ideally, a pub/sub mechanism would be more suitable and naturally composable for these use cases, this doesn't change the fact that it is a widely used pattern.
+It could even be argued that effectively, OOP inheritance is also an expression of this pattern: authors can schedule initialization logic to run at instance creation time by adding it to a method with a particular name (`constructor()`).
+Arguably, even `toJSON()`, `valueOf()`, `toString()`, etc. are also expressions of this pattern.
+
+It could be argued that composition intent is known at function definition time, and thus could be explicitly declared via some kind of function annotation (e.g. `composable foo()`).
+However this is orthogonal: regardless of _which_ functions are composed, the question of _how_ to compose them remains open.
+
+If lifecycle hooks are the main use case, perhaps function composition can be restricted to side effects, and subclassing could still be the recommended mechanism for overriding return values.
+
+Function composition is explored in depth in the [Mutable Functions](proposals/mutable-functions.md) proposal.
+
+### Static introspection
+
+It should be possible to test whether a given class implements a partial without creating an instance.
+Some ways this could be done:
+- A new operator (`implements`? `uses`?).
+- An iterable of all implemented partials, e.g. `Class[Symbol.partials]`
+  - This could even be writable to _add_ a new partial.
 
 ### Encapsulation
 

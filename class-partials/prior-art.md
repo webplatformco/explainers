@@ -119,6 +119,8 @@ Libraries:
 It is notable that Cocktail attempts to address naming conflicts via composition:
 
 > Cocktail automatically ensures that methods defined in your mixins do not obliterate the corresponding methods in your classes. This is accomplished by wrapping all colliding methods into a new method that is then assigned to the final composite object.
+> [...]
+> The return value of the composite function is the last non-undefined return value from the chain of colliding functions.
 
 Issues:
 - no way for a mixin to run code at element construction time or subclass definition time (at least not without some sort of convention, like e.g. an `init()` method or similar that the implementing class needs to call).
@@ -140,10 +142,25 @@ class A {
 }
 ```
 
-Libraries:
-- [traits.js](https://traitsjs.github.io/traits.js-website/)
+ [traits.js](https://traitsjs.github.io/traits.js-website/) applied this pattern by composing traits into a single prototype that could then be used to make instances:
 
-While this allows for more flexibility in terms of when and how to apply the mixin,
+ ```js
+ const TraitA = {
+	methodA() { console.log("A"); }
+};
+
+const TraitB = {
+	methodB() { console.log("B"); }
+};
+
+const Combined = Trait.compose(TraitA, TraitB);
+const obj = Object.create(Object.prototype, Combined);
+
+obj.methodA(); // "A"
+obj.methodB(); // "B"
+```
+
+While extending instances allows for more flexibility in terms of when and how to apply the mixin,
 it is considerably slower and makes it harder to reason about the API from a class reference.
 
 ## Other languages

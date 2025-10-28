@@ -37,9 +37,10 @@ Authors: Lea Verou
    1. [1. Are partials syntactically distinct from classes?](#1-are-partials-syntactically-distinct-from-classes)
    2. [2. How and where is the partial included?](#2-how-and-where-is-the-partial-included)
    3. [3. Is composition distinct from inheritance?](#3-is-composition-distinct-from-inheritance)
-   4. [4. Do mixins operate on their own state or the full instance?](#4-do-mixins-operate-on-their-own-state-or-the-full-instance)
-   5. [5. How is the mixin's state exposed?](#5-how-is-the-mixins-state-exposed)
+   4. [4. Do partials operate on their own state or the full composed instance?](#4-do-partials-operate-on-their-own-state-or-the-full-composed-instance)
+   5. [5. Can the partial's state be accessed from the implementing class?](#5-can-the-partials-state-be-accessed-from-the-implementing-class)
    6. [6. How to handle naming conflicts?](#6-how-to-handle-naming-conflicts)
+   7. [7. Are partials inherited?](#7-are-partials-inherited)
 9. [Concrete ideas (strawmans)](#concrete-ideas-strawmans)
    1. [Function side effects](#function-side-effects)
    2. [Syntax ideas for class partials](#syntax-ideas-for-class-partials)
@@ -554,7 +555,7 @@ This would allow dynamically applying them based on some condition, and later re
 
 ### Declarative class syntax
 
-While being able to apply partials to an existing class is a core requirement, there are many cases where partials are applied as mixins during class definition time, and it would be good to have a nice declarative syntax for it.
+While being able to apply partials to an existing class is a core requirement, there are many cases where partials are applied as mixins during class definition time, and it would be good to have a nice declarative syntax for it that lets authors keep everything in one place.
 
 ## Design space
 
@@ -588,27 +589,35 @@ partial HasIcon { /* elided */ }
 class MyButton extends HTMLButtonElement with HasIcon {}
 ```
 
-This is the direction most languages seem to have gone with.
+This is the direction most languages seem to have gone with when they have an actual concept of partials.
+Languages where partials are implemented as classes are typically framed as multiple inheritance languages (e.g. [Python](#python-multiple-inheritance)).
 
 This permits more syntactic flexibility: partials can have partial-specific syntax which is not allowed in regular classes, and there can be class syntax that is not allowed in partials.
-For example, there can be a different keyword for the partial’s own state and inheritance chain, and a different one for the eventual object instance, or keywords to define how fields and methods are combined with those of the implementing class and/or other partials.
+For example:
+- A different keyword for the partial’s own state and inheritance chain vs the eventual object instance
+- Keywords to define how fields and methods are combined with those of the implementing class and/or other partials (e.g. `compose`, `override`, `before`, `after` etc).
 
 There is also the possibility of hybrids:
 - An interesting pattern is seen in [Dart](#dart-mixins), which supports both `mixin` and `mixin class` as distinct concepts.
 - Perhaps partials _are_ classes, but classes are not partials.
 - Perhaps both partials and classes can be applied to other classes as partials, but any partial-specific features require defining a partial.
+- Perhaps all classes can have annotations around how their methods are composed with another class, and when used as standalone these annotations are simply ignored.
 
 ### 2. How and where is the partial included?
 
 The major options are:
 1. Include in the class prelude (e.g. `class A extends B with Partial {}`)
-2. Include in the class body (e.g. `class A extends B { use Partial; }` or even a destructuring-like syntax `class A extends B { ...Partial }`)
+2. Include in the class body (e.g. `class A extends B { use Partial; }` or even a class version of spread syntax: `class A extends B { ...Partial }`)
 3. Entirely separate declaration (e.g. `implement Partial for A {}`), like [Rust traits](#rust-traits)
 
 Pros & Cons:
 - A syntax that goes in the class body could provide more flexibility wrt how overrides are handled, but we lose the ability to see at a glance what a class is made of.
 That said, it could be useful for macro-like mixins, which function essentially as shorthands for specifying the fields verbatim.
-- A syntax that is separate from both the class and the mixin could allow providing metadata on the partial-class relationship itself, such as field renames, but feels awkward; there is a strong DX advantage to keeping the entire class definition together.
+
+Since a core requirement is the ability to apply partials to an existing class, it seems that a syntax along the lines of 3 would be useful _anyway_, but would be awkward if it were the only way to apply partials.
+However, if we have 3, then we can also have 1 as syntactic sugar for partials applied at class definition time.
+
+Additionally, while 1 and 2 may appear equivalent at first glance, they sit at slightly different levels of abstraction, with 2 feeling lower-level than 1.
 
 ### 3. Is composition distinct from inheritance?
 
@@ -623,25 +632,25 @@ Note that what `super` resolves to is somewhat orthogonal:
 In most languages the inheritance chain is a separate concept and is unaffected by partials.
 
 The languages where partials affect `super`are:
-- [Python mixins](#python-mixins) (multiple inheritance, not actual partials)
+- [Python](#python-multiple-inheritance) (multiple inheritance, no actual partials)
 - [Scala mixins](#scala-mixins) (`super` resolves in a method-specific way)
 - [Ruby mixins](#ruby-mixins) (`super` resolves to the same _method_ up the chain)
 
-Pros of 2:
-- Piggybacks on existing language primitives and thus can be implemented as syntactic sugar.
-- Execution order, conflicts, are all well defined, and no new primitives are needed.
-- `instanceof` just works to test whether a class implements a given mixin.
+Pros of piggybacking on inheritance:
+- Existing language primitives just work. Execution order, conflict resolution, etc. are all well defined.
+- `instanceof` could be made to just work for testing whether a class implements a given partial (depending on how the feature is designed — e.g. with subclass factories it doesn’t currently work).
 
-Cons of 2:
-- Mixes behavior and identity, which is exactly what we're trying to avoid. The inheritance chain is polluted and no longer makes sense to traverse.
-- Feels more obtrusive, since a mixin may be implementing a rather minor utility.
-- Easy to accidentally shadow in conflicts.
+Cons:
+- Conflates behavior and identity, which is exactly what we're trying to avoid. The inheritance chain is polluted and no longer makes sense to traverse.
+- Feels more obtrusive, since even including a rather minor utility has a major effect in the inheritance chain.
+- Easy to accidentally shadow in naming conflicts.
+- Slight compat risk when adopting a new mixin, in case any class consumers were depending on the inheritance chain
 
-### 4. Do mixins operate on their own state or the full instance?
+### 4. Do partials operate on their own state or the full composed instance?
 
 This is intrinsically linked to the previous question.
 For many cases, this distinction does not matter.
-But suppose you have two mixins, each defining an `init()` method, which is called at a certain point to perform some initialization tasks and needs to be called on both the current instance and its superclass:
+But suppose you have two partials, each defining an `init()` method, which is called at a certain point to perform some initialization tasks and needs to be called on both the current instance and its superclass:
 
 ```js
 class M1 {
@@ -663,14 +672,14 @@ class A extends B with M1, M2 {
 }
 ```
 
-When each mixin calls `super.init()`, the intent is to initialize its own state on the parent instance, not to also initialize behavior by the other mixin (which may be called at a different point in time).
+When each mixin calls `super.init()`, the intent is to initialize its own state on the parent instance, not to also initialize behavior by any other mixin which happens to define the same method.
 
-Admittedly, for this particular example, since `init()` is not really public API, the problem can be circumvented by making it private or using a Symbol.
+Admittedly, for this particular example, since `init()` is not really public API, the problem can be circumvented by making it private or using a `Symbol`.
 However, there are other cases where the method _is_ part of the public API, so this is not a workable solution.
 
 Worse yet, with the inheritance chain model, what happens with each `super.init()` call is subject to the order of inclusion, which is not always meaningful.
 
-### 5. How is the mixin's state exposed?
+### 5. Can the partial's state be accessed from the implementing class?
 
 Just like with inheritance it is often desirable to access the parent state via `super`,
 the same need exists for mixins.
@@ -679,7 +688,7 @@ In [Java 8+ interfaces](#java-8-interfaces), this is achieved via `InterfaceName
 
 ### 6. How to handle naming conflicts?
 
-Even if authors are encouraged to use symbol names for anything that does not need to be part of the public API, and even if composable side effects are explicitly marked, there is always the risk of naming conflicts between public fields that simply happen to use the same name.
+Even if authors are encouraged to use symbol names for anything that does not need to be part of the public API, and even if composable side effects are explicitly annotated as such, there is always the risk of naming conflicts between public fields that simply happen to use the same name.
 
 One solution is to simply **throw** an error.
 This makes the issues more discoverable, but also makes the logic more fragile.
@@ -695,6 +704,13 @@ Perhaps overrides could only be allowed via an explicit opt-in (e.g. an `overrid
 There is also the question of _what_ is a naming collision.
 E.g. if a superclass implements a method but the implementing class does not, is that a naming collision?
 There are many use cases where a partial is pulled in to implement a method "properly" which has a stub implementation in some superclass (e.g. `toString()`, `toJSON()` etc.).
+
+### 7. Are partials inherited?
+
+Depending on the design, partials may or may not be inherited by subclasses.
+What is most useful?
+It seems that for most use cases, inheritance is desirable.
+Does that generalize?
 
 ## Concrete ideas (strawmans)
 

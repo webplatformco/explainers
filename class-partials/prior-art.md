@@ -5,11 +5,14 @@ Authors: Lea Verou
 <details open>
 <summary>Contents</summary>
 
-1. [Use cases](#use-cases)
-2. [Prior art](#prior-art)
-	1. [Userland patterns](#userland-patterns)
-	2. [In other languages](#in-other-languages)
-
+1. [Userland patterns](#userland-patterns)
+	1. [Subclass factories (mixins)](#subclass-factories-mixins)
+	2. [Controllers](#controllers)
+	3. [Prototype mutations](#prototype-mutations)
+	4. [Instance mutations](#instance-mutations)
+2. [Other languages](#other-languages)
+	1. [Multiple inheritance languages](#multiple-inheritance-languages)
+	2. [Partials](#partials)
 
 
 </details>
@@ -28,8 +31,6 @@ class A extends M2(M1(SuperClass)) {}
 
 Libraries:
 - [mixwith](https://www.npmjs.com/package/mixwith)
-- [cocktail](https://github.com/onsi/cocktail)
-- [traits.js](https://traitsjs.github.io/traits.js-website/)
 
 The [Mixins proposal](https://github.com/tc39/proposal-mixins) proposed a declarative syntax for mixins with automatic deduplication.
 
@@ -112,10 +113,38 @@ copyOwnDescriptors({
 });
 ```
 
+Libraries:
+- [Cocktail](https://github.com/onsi/cocktail)
+
+It is notable that Cocktail attempts to address naming conflicts via composition:
+
+> Cocktail automatically ensures that methods defined in your mixins do not obliterate the corresponding methods in your classes. This is accomplished by wrapping all colliding methods into a new method that is then assigned to the final composite object.
+
 Issues:
 - no way for a mixin to run code at element construction time or subclass definition time (at least not without some sort of convention, like e.g. an `init()` method or similar that the implementing class needs to call).
 - No way to disentangle where everything comes from (for debugging, devtools, etc).
 - No way to test whether a class implements a given mixin, either via `instanceof` or some other mechanism.
+
+### Instance mutations
+
+Another pattern is to mutate the instance of the implementing class:
+
+```js
+import Mixin from './mixin.js';
+import { applyMixin } from './utils.js';
+
+class A {
+  constructor(instance) {
+    applyMixin(this, Mixin);
+  }
+}
+```
+
+Libraries:
+- [traits.js](https://traitsjs.github.io/traits.js-website/)
+
+While this allows for more flexibility in terms of when and how to apply the mixin,
+it is considerably slower and makes it harder to reason about the API from a class reference.
 
 ## Other languages
 
@@ -197,7 +226,9 @@ end
 - No generic `super`; `Precursor` must specify which superclass to use (e.g. `Precursor {M1}`)
 
 
-### Partials (mixins, traits, protocols, interfaces, etc.)
+### Partials
+
+This includes primitives like mixins, traits, protocols, interfaces, etc.
 
 #### [TypeScript mixins](https://www.typescriptlang.org/docs/handbook/mixins.html)
 
@@ -274,22 +305,25 @@ trait M2 {}
 class A extends B with M1, M2 {}
 ```
 
-Notes:
-- Naming collisions are resolved via a predefined precedence order (class linearization) based on the order of inclusion. The last trait in the list takes precedence.
-
-#### [Scala mixins](https://docs.scala-lang.org/tour/mixin-class-composition.html)
+Classes can extend one superclass, but can have multiple traits,
+and traits can extend other traits or classes.
 
 ```scala
-trait M1:
-	def f(): Unit = println("M1")
+abstract class A:
+  val message: String
+class B extends A:
+  val message = "I'm an instance of class B"
+trait C extends A:
+  def loudMessage = message.toUpperCase()
+class D extends B, C
 
-trait M2:
-	def g(): Unit = println("M2")
-
-class A extends M1 with M2
+val d = D()
+println(d.message)  // I'm an instance of class B
+println(d.loudMessage)  // I'M AN INSTANCE OF CLASS B
 ```
 
 Notes:
+- Naming collisions are resolved via a predefined precedence order (class linearization) based on the order of inclusion. The last trait in the list takes precedence.
 - Cannot do `class A with M1 with M2`, `with` can only come after `extends`.
 - Traits affect what `super.f()` resolves to (which may come from a trait or a superclass)
 
@@ -308,6 +342,9 @@ class A a where
 ```
 
 #### [Java 8+ interfaces](https://docs.oracle.com/javase/tutorial/java/concepts/interface.html)
+
+In Java, interfaces can contain logic, but it is framed as a "default implementation" rather than code reuse.
+As a result, superclass methods take precedence over interface methods.
 
 ```java
 interface M1 {

@@ -1,5 +1,8 @@
 # Mutable Functions
 
+> [!NOTE]
+> This is a work in progress and not yet ready for review.
+
 ## Motivation
 
 Applying partials to an existing class after class definition, is listed as a [core requirement](../#it-should-be-possible-to-apply-partials-to-an-existing-class).

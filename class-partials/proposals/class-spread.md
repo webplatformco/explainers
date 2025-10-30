@@ -1,5 +1,8 @@
 # Class Spread Syntax
 
+> [!NOTE]
+> This is a work in progress and not yet ready for review.
+
 ## Motivation
 
 Today, the spread syntax can be used to compose an object from multiple other objects of the same or similar type.
@@ -111,3 +114,16 @@ I.e. in the earlier example, `B.prototype.foo === A.prototype.foo` is true, but 
 ### What can be spread?
 
 Any class can be spread, including built-in ones (though that is unlikely to be very useful).
+
+It may be useful to also allow regular objects to be spread, to facilitate better code sharing between different API paradigms (e.g. OOP and module-based).
+
+```js
+import * as functions from "./functions.js";
+
+class Color {
+	...functions;
+}
+```
+
+> [!NOTE]
+> How to specify static members that way?

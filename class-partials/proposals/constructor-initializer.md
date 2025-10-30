@@ -1,4 +1,7 @@
-# Instance initializers
+# Instance initializers / Constructor side effects / Customizable `[[Construct]]`
+
+> [!NOTE]
+> This is a work in progress and not yet ready for review.
 
 ## Motivation
 
@@ -106,9 +109,25 @@ A string name has better DX, but any reasonable name will carry huge compat risk
 
 Veredict: **Symbol**.
 
+Perhaps it could be framed around a way to customize the `[[Construct]]` internal method, via a new known symbol: `Symbol.construct`.
+
+Then, to add side effects to a constructor, one could do:
+
+```js
+let nativeConstruct = Class[Symbol.construct];
+Class[Symbol.construct] = function (...args) {
+	let result = nativeConstruct.apply(this, args);
+	// Custom code here...
+	return result;
+}
+```
+
+Then, built-ins that don’t want to support this kind of mutation could simply define the property as not writable and not configurable.
+
 ### Name bikeshedding
 
 This explainer uses `initialize`. Other potential names include:
+- `construct` (see above)
 - `created`
 - `postConstruct`
 - `prototypeAssigned`

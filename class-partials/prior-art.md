@@ -6,13 +6,13 @@ Authors: Lea Verou
 <summary>Contents</summary>
 
 1. [Userland patterns](#userland-patterns)
-	1. [Subclass factories (mixins)](#subclass-factories-mixins)
-	2. [Controllers](#controllers)
-	3. [Prototype mutations](#prototype-mutations)
-	4. [Instance mutations](#instance-mutations)
+   1. [Subclass factories (mixins)](#subclass-factories-mixins)
+   2. [Controllers](#controllers)
+   3. [Prototype mutations](#prototype-mutations)
+   4. [Instance mutations](#instance-mutations)
 2. [Other languages](#other-languages)
-	1. [Multiple inheritance languages](#multiple-inheritance-languages)
-	2. [Partials](#partials)
+   1. [Multiple inheritance languages](#multiple-inheritance-languages)
+   2. [Partials](#partials)
 
 
 </details>
@@ -37,6 +37,8 @@ The [Mixins proposal](https://github.com/tc39/proposal-mixins) proposed a declar
 Problems:
 - Pollution of the inheritance chain, no separation between identity and traits
 - Requires additional code to deduplicate mixins (e.g. [`@open-wc/dedupe-mixin`](https://www.npmjs.com/package/@open-wc/dedupe-mixin))
+- Hinders debugging, since the class' string representation does not reflect its actual superclass, but always shows the mixin parameter.
+- Every mixin needs to call `super.methodName?.()` defensively to avoid breaking things
 
 
 ### Controllers
@@ -80,6 +82,7 @@ Lit even has a [Controller primitive](https://lit.dev/docs/composition/controlle
 Pros:
 - Separate state and inheritance chain makes it very easy to reason about
 - Can be added and removed at any time
+- Can have multiple controllers for a single class
 
 Problems:
 - No way to add API surface to the class, so use cases that need it involve a lot of repetitive glue code

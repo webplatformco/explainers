@@ -463,15 +463,4 @@ Does that generalize?
 
 ## Concrete ideas (strawmans)
 
-There are two components to addressing the requirements with a concrete proposal:
-1. Function side effects: How to extend the methods in the implementing class with new behavior? Any design that is not based on inheritance will need a way to compose functions.
-2. Partial syntax: How to declare and apply partials to a class?
-
-There are several possible primitives that can be introduced to address one or both of these components, and they are developed as separate proposals:
-
-- [Mutable Functions](proposals/mutable-functions.md)
-- [Modernize Function constructor](proposals/function-constructor.md)
-- [Instance initializers / Customizable `[[Construct]]`](proposals/constructor-initializer.md)
-- [Customizable `[[Call]]`](proposals/customizable-call.md)
-- [Class spread](proposals/class-spread.md)
-<!-- - [Controllers](proposals/controllers.md) -->
+Proposals are developed as separate files in the [proposals](proposals) directory.

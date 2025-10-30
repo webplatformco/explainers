@@ -124,6 +124,8 @@ Class[Symbol.construct] = function (...args) {
 
 Then, built-ins that don’t want to support this kind of mutation could simply define the property as not writable and not configurable.
 
+One downside of this approach is that while it addresses the motivating use cases around constructor side effects, it does not address the use cases around instance initializers (even when created in ways that do not invoke the constructor).
+
 ### Name bikeshedding
 
 This explainer uses `initialize`. Other potential names include:

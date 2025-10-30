@@ -43,8 +43,6 @@ Authors: Lea Verou
 	6. [6. How to handle naming conflicts?](#6-how-to-handle-naming-conflicts)
 	7. [7. Are partials inherited?](#7-are-partials-inherited)
 10. [Concrete ideas (strawmans)](#concrete-ideas-strawmans)
-	 1. [Mutable Functions](#mutable-functions)
-	 2. [Syntax ideas for class partials](#syntax-ideas-for-class-partials)
 
 
 </details>
@@ -466,20 +464,14 @@ Does that generalize?
 ## Concrete ideas (strawmans)
 
 There are two components to addressing the requirements with a concrete proposal:
-1. Function side effects: How to extend the methods in the implementing class with new behavior?
+1. Function side effects: How to extend the methods in the implementing class with new behavior? Any design that is not based on inheritance will need a way to compose functions.
 2. Partial syntax: How to declare and apply partials to a class?
 
-### Mutable Functions
+There are several possible primitives that can be introduced to address one or both of these components, and they are developed as separate proposals:
 
-Any design that is not based on inheritance will need a way to compose functions.
-This is explored in the [Mutable Functions](proposals/mutable-functions.md) proposal.
-
-### Syntax ideas for class partials
-
-TBD
-
-In the following, we’ll assume that side effects can be added to functions through a `Function.prototype.addSideEffect()` method, regardless of the specifics (discussed in the previous section).
-
-### Syntax ideas for class partials
-
-TBD
+- [Mutable Functions](proposals/mutable-functions.md)
+- [Modernize Function constructor](proposals/function-constructor.md)
+- [Instance initializers / Customizable `[[Construct]]`](proposals/constructor-initializer.md)
+- [Customizable `[[Call]]`](proposals/customizable-call.md)
+- [Class spread](proposals/class-spread.md)
+<!-- - [Controllers](proposals/controllers.md) -->

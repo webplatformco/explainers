@@ -9,6 +9,12 @@ Authors: Lea Verou
 <summary>Contents</summary>
 
 1. [Use cases](#use-cases)
+	1. [Use case axes/dimensions](#use-case-axesdimensions)
+	2. [Concrete examples](#concrete-examples)
+	3. [API surface for iterables](#api-surface-for-iterables)
+	4. [`HTMLMediaElement`](#htmlmediaelement)
+	5. [Custom Elements](#custom-elements)
+	6. [Custom Attributes](#custom-attributes)
 2. [Prior art](#prior-art)
 	1. [Userland patterns](#userland-patterns)
 	2. [Other languages](#other-languages)
@@ -54,13 +60,139 @@ This document is currently an exploration of the problem and design space, and d
 
 ## Use cases
 
-The high-level use case for multiple inheritance is well-known: repeated logic / API surface that is not fundamental to the object’s identity but instead describes certain behaviors or traits (_has a_ rather than _is a_).
+### Use case axes/dimensions
 
-* Composable `EventTarget`
-* Web Components
-	* Implement HTML custom attributes that can be added on any element at any point in time
-	* Browser-provided composable partials can also serve as an alternative to [`ElementInternals.type`](https://github.com/whatwg/html/issues/11061)
-* ...TBD...
+The limitations of single inheritance are well-established in the literature, and there is little point in revisiting them here.
+
+On a high level, there are two distinct axes of use cases with different requirements:
+1. **Level of coupling** between the behavior, the class, and the code applying the behavior to the class. This ranges from the same entity developing all three and seeking to simply reduce knowledge duplication (**cooperative partials**), to completely decoupled development where all three are developed independently by different entities (**decoupled traits**).
+2. **Abstractness**: Does the partial require any API surface from the implementing class (essentially as input to parameterize it), or does it provide all the API surface it needs?
+3. **Type**: Is the partial a concrete behavior (_has a_) that can be reasoned about as a separate concept, or an aspect of the class's identity (_is a_) that we simply abstracted away for maintainability?
+
+Depending on where a use case falls on these axes, the requirements and constraints will be different.
+
+For example, having a way to apply class partials to existing classes is much more important for decoupled traits than for cooperative partials.
+And solutions that involve modifying the constructor or inheritance chain may be more acceptable for identity partials than for behaviors/traits.
+
+### Concrete examples
+
+> [!NOTE]
+> Issue: This section is currently too Web focused. We need more pure ES examples, and/or examples from JS runtimes.
+
+### API surface for iterables
+
+Because the language has no primitive for interfaces, iterables are implemented as a protocol: A `Symbol.iterator` (or `Symbol.asyncIterator` for async iterables) property on the class prototype that returns an iterator object, which is simply an object that needs to implement certain methods (e.g. `next()`, `return()`, `throw()`).
+
+Because iterators are implemented as a protocol and do not add any new API surface to the host class, actual API surface needs to be added separately.
+For example, there are many `Array` methods that are useful for all iterables, such as `forEach()`, `map()`, `filter()`, `reduce()`, etc.
+But they are inconsistently supported on other iterables as they need to be advocated, specced, and implemented as separate features, rather than an automatic consequence of an object being iterable.
+
+#### `EventTarget`
+
+The `EventTarget` class begun as a DOM API, but has now practically become the web platform's de facto pub/sub mechanism for classes, and has even been adopted by JS runtimes.
+Some of its direct subclasses in the web platform include `Node`, `Window`, `IDBRequest`, `AudioNode`, and `AudioContext`.
+
+This has both practical and philosophical issues:
+
+Philosophically, being able to receive events is a capability, not a part of an object’s identity.
+You would not describe the `Node` class as "an event target".
+`Node` and `AudioContext` have nothing in common, yet they have the same base class.
+This is because inheritance is used to apply partials, because the language has no other mechanism for doing so.
+
+Practically, this makes it impossible to have an event target class that also extends another class that does not extend `EventTarget`.
+As a trivial example, suppose you had an `ArrayStream` class which was implemented as either an `Array` subclass or a `ReadableStream` subclass and allowed you to read streamed remote data as an array.
+You cannot make it an event target (e.g. for events around fetching progress) because neither `Array` nor `ReadableStream` extend `EventTarget`.
+
+In terms of the three axes, `EventTarget` is:
+1. **Level of coupling**: Decoupled. `EventTarget` is developed by different entities than the classes that extend it.
+2. **Abstractness**: Concrete. `EventTarget` adds API surface, and does not mandate any particular contract to be followed by the implementing class.
+3. **Type**: Behavior. `EventTarget` is a concrete behavior that can be reasoned about as a separate concept, not part of the class's identity.
+
+### `HTMLMediaElement`
+
+The `HTMLMediaElement` class is the base class that both `<audio>` and `<video>` elements extend from, and it adds a ton of API surface for controlling media playback.
+In terms of the three axes, `HTMLMediaElement` is:
+1. **Level of coupling**: Coupled. `HTMLMediaElement` is generally developed by the same entity as the classes that extend it.
+2. **Abstractness**: Concrete. `HTMLMediaElement` adds all the API surface it needs.
+3. **Type**: Behavior. `HTMLMediaElement` is a concrete behavior that can be reasoned about as a separate concept, not part of the class's identity.
+While it can be argued that being a media element _is_ part of the class's identity ()
+
+### Custom Elements
+
+Custom Elements is a Web Components API that allows authors to define new HTML elements by defining a subclass of `HTMLElement` and registering it with the browser.
+
+```js
+class MyElement extends HTMLElement {
+	// ...
+}
+
+customElements.define("my-element", MyElement);
+```
+
+> [!NOTE]
+> Only extension of `HTMLElement` is currently allowed, no other `Element` subclasses (e.g. `SVGElement`) can be extended, and no `HTMLElement` subclasses can be extended either (e.g. `class MyButton extends HTMLButtonElement` is not allowed).
+
+Since Custom Elements is a fairly low-level API, and the space of UI components is vast,
+the need for partials is very strong in this area.
+Some examples:
+- Form associated: manage API surface and behaviors of custom elements that are also form controls
+- Styles: Read a predefined static property (e.g. `styles`) and take care of fetching and applying adopted stylesheets
+- Props: Read a predefined static property (e.g. `props`) and take care of setting up attribute-property reflection
+
+Since use cases are so diverse, they also span the entire spectrum of the three axes:
+Some are coupled, some are decoupled, some are concrete, others include abstract parts, some are behaviors, others are parts of a component's identity.
+
+The lack of a mechanism for class partials has led to implementing [controller](prior-art.md#controllers)-based solutions for current needs, through `ElementInternals`, which requires a lot of glue code by the web component author.
+For example, making a custom element that is also a form control looks like this:
+```js
+class MyElement extends HTMLElement {
+	// This tells ElementInternals that this element is form associated
+	static formAssociated = true;
+
+	constructor() {
+		super();
+
+		// Cannot use #internals because subclasses need access
+		this._internals = this.attachInternals();
+
+		this.addEventListener("input", () => {
+			this._internals.setFormValue(this.value);
+		});
+	}
+
+	// API glue code
+	get labels () { return this._internals.labels; }
+	get form () { return this._internals.form; }
+	get validity () { return this._internals.validity; }
+	get validationMessage () { return this._internals.validationMessage; }
+	willValidate (...args) { return this._internals.willValidate(...args); }
+	reportValidity(...args) { return this._internals.reportValidity(...args); }
+	checkValidity(...args) { return this._internals.checkValidity(...args); }
+	// ...
+}
+```
+
+Not only is this tedious and error-prone, it also means that when there is new API surface for form controls, authors must manually update their glue code to support it.
+
+More recently, similar solutions are being proposed even for identity-based partials (see  [`ElementInternals.type`](https://github.com/whatwg/html/issues/11061)) so the need for a language-level solution is even more pressing.
+
+### Custom Attributes
+
+Just like inheritance is not suitable for all class logic sharing, in UIs components are not suitable for all UI reuse.
+Some functionality is fundamentally a trait that should be possible to apply to any element, rather than element identity that should be applied as a dedicated element type.
+
+Many HTML global attributes are such traits:
+- `title` adds a tooltip to any element. A `<title>` component would have been much more limiting.
+- `hidden` hides any element. A `<hidden>` component would have been much more limiting.
+- `popover` makes any element a popover. While a dedicated `<popup>` or `<popover>` component was discussed, it was decided that a global attribute was much more flexible.
+
+While there is no current API to create custom attributes, there are several proposals to do so, and it seems like a better path forwards for many use cases around extending built-ins.
+
+Custom attributes are a great example for why there should be a mechanism to apply partials to existing classes.
+It’s not merely a convenience — solutions that require generating a new constructor to add a partial are a no-go for custom attributes, since the constructors are invoked by writing HTML, not by directly calling `new`.
+
+While there could be a new API for adding custom attributes that manually manages lifecycle hooks, a language-level solution would both reduce the need for new API surface and provide more flexibility.
+
 
 ## Prior art
 
@@ -74,12 +206,14 @@ See [Prior art](prior-art.md#userland-patterns) for a detailed exploration of th
 
 ### Other languages
 
-See [Prior art](prior-art.md#other-languages) for a detailed exploration of other languages.
+See [Prior art: Other languages](prior-art.md#other-languages) for a detailed exploration of the primitives other languages have implemented to address similar use cases.
 
 ## Resources
 
 - [Wikipedia: Multiple inheritance](https://en.wikipedia.org/wiki/Multiple_inheritance)
 - [Wikipedia: Virtual inheritance](https://en.wikipedia.org/wiki/Virtual_inheritance)
+- [Wikipedia: Mixins](https://en.wikipedia.org/wiki/Mixin)
+- [Wikipedia: Traits](https://en.wikipedia.org/wiki/Trait_(computer_programming))
 - ["Real" Mixins with JavaScript Classes](https://justinfagnani.com/2015/12/21/real-mixins-with-javascript-classes/)
 - [JavaScript Mixins, Subclass Factories, and Method Advice](https://raganwald.com/2015/12/28/mixins-subclass-factories-and-method-advice.html)
 - [Original paper on mixins (OOPSLA 1990)](https://www.bracha.org/oopsla90.pdf)

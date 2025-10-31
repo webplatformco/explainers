@@ -125,5 +125,33 @@ class Color {
 }
 ```
 
-> [!NOTE]
-> How to specify static members that way?
+This would also allow for dynamically generating API surface (e.g. for controllers):
+
+```js
+class MyClass {
+	foo = new FooController(this);
+
+	static fooProps = []
+	...Object.fromEntries(this.constructor.fooProps.map(property => [
+		property,
+		function(...args) {
+			return this.foo[property](...args);
+		},
+	]))
+}
+```
+
+Ideally, it should be possible to specify both instance and static members that way.
+
+Perhaps spread syntax within static initialization blocks could be special cased to support this:
+
+```js
+import { instanceFooProps, staticFooProps } from "./foo.js";
+
+class MyClass {
+	...instanceFooProps;
+	static {
+		...staticFooProps;
+	}
+}
+```

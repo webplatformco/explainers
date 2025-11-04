@@ -8,8 +8,8 @@ There are two components to addressing the requirements for class partials:
 
 There are several possible primitives that can be introduced to address one or both of these components, and they are developed as separate proposals in this directory:
 
+- [Customizable public `[[ Fields ]]`](proposals/customizable-fields.md)
 - [Class spread](proposals/class-spread.md)
-- [Class public field introspection](proposals/customizable-fields.md)
 - [Modernize Function constructor](proposals/function-constructor.md)
 - [Instance initializers / Customizable `[[Construct]]`](proposals/constructor-initializer.md)
 - [Customizable `[[Call]]`](proposals/customizable-call.md)

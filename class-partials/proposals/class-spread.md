@@ -25,7 +25,7 @@ even in scenarios where class definitions can be cooperatively developed.
 
 ## Proposal
 
-The spread syntax for classes would work like this:
+The spread syntax for classes could work like this:
 
 ```js
 class A {
@@ -55,6 +55,12 @@ for (const key in staticDescriptors) {
 	if (["length", "name", "prototype"].includes(key)) continue;
 	Object.defineProperty(B, key, staticDescriptors[key]);
 }
+```
+
+And with [customizable public class fields](customizable-fields.md), those can also be copied via:
+
+```js
+B[Symbol.publicFields].push(...A[Symbol.publicFields]);
 ```
 
 Unlike [subclass factories](../prior-art.md#subclass-factories-mixins), the spread operator would not affect the inheritance chain, it is essentially a macro for adding class members (both instance and static).
@@ -154,4 +160,21 @@ class MyClass {
 		...staticFooProps;
 	}
 }
+```
+
+Alternatively, to support both "classes" defined via prototypal inheritance directly, it could copy top-level fields as static and prototype fields as instance:
+
+```js
+let obj = {
+	foo: 2,
+	prototype: {
+		foo () { return 1 }
+	}
+}
+class MyClass {
+	...obj;
+}
+
+console.log(MyClass.foo); // 2
+console.log(new MyClass().foo()); // 1
 ```

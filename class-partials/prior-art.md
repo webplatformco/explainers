@@ -43,36 +43,51 @@ Problems:
 
 ### Delegation Pattern / Controllers { #delegation }
 
-A common OOP pattern is to achieve [composition via delegation](https://en.wikipedia.org/wiki/Delegation_pattern) (or [forwarding](https://en.wikipedia.org/wiki/Forwarding_(object-oriented_programming))), where the implementing class holds a reference to a separate object and delegates or forwards calls and property accesses to it.
+A common OOP pattern is to achieve [composition via delegation](https://en.wikipedia.org/wiki/Delegation_pattern) (or [forwarding](https://en.wikipedia.org/wiki/Forwarding_(object-oriented_programming))), where the implementing class uses a separate object to abstract and reuse behavior.
+
+The pattern typically involves either one-way linking (host class → delegate or vice versa) or two-way linking (host class ↔ delegate).
+
+When the use case calls for new API surface, the host class will hold a reference to the delegate object and forward certain calls and property accesses to it.
+
+The following snippet demonstrates the three possible relationships:
 
 ```js
-class Delegate {
+class Delegate1 {
+  foo () { /* ... */ }
+  bar1() { /* ... */ }
+  qux1 = 1;
+}
+class Delegate2 {
   constructor(host) {
     this.host = host;
   }
 
-  foo () { /* elided */ }
-
-  get bar() { /* elided */ }
-  set bar(value) { /* elided */ }
+  foo () { /* ... */ }
+  bar() { /* ... */ }
+  qux2 = 1;
 }
 
-class Foo {
-  constructor() {
-    this.delegate = new Delegate(this);
+class MyClass {
+	constructor() {
+    // host → delegate
+    this.delegate = new Delegate1();
+    // delegate → host
+    new Delegate2(this);
+    // host ↔ delegate
+    this.delegate2 = new Delegate2(this);
   }
 
-  foo () {
-    return this.delegate.foo();
-  }
+  // API surface glue code
+  foo() { return this.delegate.foo(); }
+  bar1() { return this.delegate.bar1(); }
+  get qux1() { return this.delegate.qux1; }
+  set qux1(value) { this.delegate.qux1 = value; }
 
-  get bar() {
-    return this.delegate.bar;
-  }
-
-  set bar(value) {
-    this.delegate.bar = value;
-  }
+  // Renamed to avoid naming conflicts
+  foo2() { return this.delegate2.foo(); }
+  bar2() { return this.delegate2.bar(); }
+  get qux2() { return this.delegate2.qux2; }
+  set qux2(value) { this.delegate2.qux2 = value; }
 }
 ```
 

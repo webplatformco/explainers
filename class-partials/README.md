@@ -144,7 +144,7 @@ Some examples:
 Since use cases are so diverse, they also span the entire spectrum of the three axes:
 Some are coupled, some are decoupled, some are concrete, others include abstract parts, some are behaviors, others are parts of a component's identity.
 
-The lack of a mechanism for class partials has led to implementing [controller](prior-art.md#controllers)-based solutions for current needs, through `ElementInternals`, which requires a lot of glue code by the web component author.
+The lack of a mechanism for class partials has led to implementing [controller](prior-art.md#delegation)-based solutions for current needs, through `ElementInternals`, which requires a lot of glue code by the web component author.
 For example, making a custom element that is also a form control looks like this:
 ```js
 class MyElement extends HTMLElement {
@@ -202,7 +202,7 @@ While there could be a new API for adding custom attributes that manually manage
 
 See [Prior art](prior-art.md#userland-patterns) for a detailed exploration of the existing userland patterns:
 1. [Subclass factories (mixins)](prior-art.md#subclass-factories-mixins)
-2. [Controllers](prior-art.md#controllers)
+2. [Controllers](prior-art.md#delegation)
 3. [Prototype mutations](prior-art.md#prototype-mutations)
 4. [Instance mutations](prior-art.md#instance-mutations)
 

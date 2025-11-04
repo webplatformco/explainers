@@ -1,4 +1,4 @@
-# Class public field introspection
+# Customizable `[[ Fields ]]`
 
 ## Motivation
 
@@ -10,7 +10,7 @@ However, while static class fields can be trivially introspected by looking at p
 
 ### Core idea
 
-A new known symbol that provides read-only or read-write access to (a subset of) a class's  internal `[[ Fields ]]` slot.
+A new known symbol that provides read-only or read-write access to (a subset of) a class's internal `[[ Fields ]]` slot.
 
 ### Design decisions
 
@@ -28,7 +28,7 @@ OTOH, including metadata is a more extensible design, in which case there is no 
 
 There is a spectrum between purely read-only access (which still addresses the use cases around introspection) and a completely mutable data structure, which allows adding fields, removing fields, or modifying initializers.
 
-While it’s unclear whether there are use cases for a fully mutable data structure, the ability to **add** fields would make this incredibly more powerful, and address many of the use cases for [constructor side effects](constructors.md#constructor-side-effects) while sidestepping the issues around extending built-ins, since built-in classes are not created via `ClassDefinitionEvaluation` and thus have no `[[ Fields ]]` internal slot.
+While it’s unclear whether there are use cases for a fully mutable data structure, the ability to **add** fields would make this incredibly more powerful, and address most of the use cases for [instance initializers](constructor-initializer.md) while sidestepping the issues around extending built-ins, since built-in classes are not created via `ClassDefinitionEvaluation` and thus have no internal `[[ Fields ]]` slot.
 
 One question in that case is how to expose an append-only _List_.
 Possibly an array-like object with a `push` method?
@@ -61,4 +61,5 @@ The getter returns an append-only _List_ of _Record_ objects, each with the foll
 - `initializer`: The initializer of the field. (`Function`)
 - `isStatic`: Whether the field is static. (`boolean`)
 
-
+The list is exposed using an array-like object.
+The extent of mutations that can apply to it is TBD.

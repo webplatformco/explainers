@@ -7,7 +7,7 @@ Authors: Lea Verou
 
 1. [Userland patterns](#userland-patterns)
    1. [Subclass factories (mixins)](#subclass-factories-mixins)
-   2. [Controllers](#controllers)
+   2. [Delegation Pattern / Controllers { #delegation }](#delegation-pattern--controllers--delegation-)
    3. [Prototype mutations](#prototype-mutations)
    4. [Instance mutations](#instance-mutations)
 2. [Other languages](#other-languages)
@@ -41,12 +41,12 @@ Problems:
 - Every mixin needs to call `super.methodName?.()` defensively to avoid breaking things
 
 
-### Controllers
+### Delegation Pattern / Controllers { #delegation }
 
-Another pattern for behavior sharing is to use separate objects that hold a reference to the original instance:
+A common OOP pattern is to achieve [composition via delegation](https://en.wikipedia.org/wiki/Delegation_pattern) (or [forwarding](https://en.wikipedia.org/wiki/Forwarding_(object-oriented_programming))), where the implementing class holds a reference to a separate object and delegates or forwards calls and property accesses to it.
 
 ```js
-class Controller {
+class Delegate {
   constructor(host) {
     this.host = host;
   }
@@ -59,37 +59,39 @@ class Controller {
 
 class Foo {
   constructor() {
-    this.controller = new Controller(this);
+    this.delegate = new Delegate(this);
   }
 
   foo () {
-    return this.controller.foo();
+    return this.delegate.foo();
   }
 
   get bar() {
-    return this.controller.bar;
+    return this.delegate.bar;
   }
 
   set bar(value) {
-    this.controller.bar = value;
+    this.delegate.bar = value;
   }
 }
 ```
 
-The Web Components [`ElementInternals` API](https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals) is an example of this pattern in the web platform.
+In Web Components, this pattern is known as **Controllers**.
+The [`ElementInternals` API](https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals) is a native example of this pattern in the web platform.
 Lit even has a [Controller primitive](https://lit.dev/docs/composition/controllers/) to facilitate this pattern.
 
 Pros:
 - Separate state and inheritance chain makes it very easy to reason about
 - Can be added and removed at any time, even on individual instances
 - Can have multiple controllers of the same type for a single class
+- Delegate does not need to be built for this purpose. E.g. in many objects the delegate is simply another object (a DOM element in Web Components, a data structure, etc.)
 
 Problems:
-- No way to add API surface to the class, so use cases that need it involve a lot of repetitive glue code
-- Because the glue code is manually authored by the implementing class author, it may not be up to date with the latest API surface of the controller.
+- **(Major)** No way to add API surface to the class, so use cases that need it involve a lot of repetitive glue code.
+- Because the glue code is manually authored by the author of the implementing class, it may not be up to date with the latest API surface of the controller.
 - No good way to extend existing methods in the host class, e.g. to add side effects to certain lifecycle hooks (at least not out of the box).
-- No way to check whether a given class implements a certain controller or not (without a shared contract about what property the controller is stored in)
-- No way to add a controller to a class from the outside, the implementing class needs to create the controller itself.
+- No way to check whether a given class implements a certain delegate or not, even with a shared contract about what property the delegate is stored in (since instance fields cannot be inspected without creating an instance)
+- No way to add a delegate to a class from the outside, the implementing class needs to create the delegate itself.
 
 ### Prototype mutations
 

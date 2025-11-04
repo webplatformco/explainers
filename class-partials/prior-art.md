@@ -81,12 +81,13 @@ Lit even has a [Controller primitive](https://lit.dev/docs/composition/controlle
 
 Pros:
 - Separate state and inheritance chain makes it very easy to reason about
-- Can be added and removed at any time
-- Can have multiple controllers for a single class
+- Can be added and removed at any time, even on individual instances
+- Can have multiple controllers of the same type for a single class
 
 Problems:
 - No way to add API surface to the class, so use cases that need it involve a lot of repetitive glue code
-- No good way to extend existing methods, e.g. to add side effects to certain lifecycle hooks (at least not out of the box).
+- Because the glue code is manually authored by the implementing class author, it may not be up to date with the latest API surface of the controller.
+- No good way to extend existing methods in the host class, e.g. to add side effects to certain lifecycle hooks (at least not out of the box).
 - No way to check whether a given class implements a certain controller or not (without a shared contract about what property the controller is stored in)
 - No way to add a controller to a class from the outside, the implementing class needs to create the controller itself.
 

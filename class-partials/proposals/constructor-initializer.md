@@ -47,7 +47,7 @@ class Super {
 }
 ```
 
-However, this is async, and thus does not run immediately after instance creation.
+Not only is this hacky and obscures user intent, it is also async, and thus does not run immediately after instance creation.
 
 ### Too powerful?
 
@@ -77,6 +77,8 @@ One observation is that it seems that all motivating use cases involve author cl
 This is a nice separation:
 perhaps **restricting it to author classes** could be a way forwards that gives us a lot of the value, without the risks.
 Ideally, the design should allow extending it to certain "safe" built-ins in the future as needed.
+
+For an alternative solution that is also restricted to author classes, see [class field introspection](class-field-introspection.md).
 
 ## Design space
 

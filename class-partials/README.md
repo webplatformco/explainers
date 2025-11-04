@@ -23,17 +23,19 @@ Authors: Lea Verou
 	1. [Mixins proposal](#mixins-proposal)
 	2. [First-Class Protocols proposal](#first-class-protocols-proposal)
 	3. [Decorators proposal](#decorators-proposal)
+	4. [Older proposals](#older-proposals)
 5. [Definitions](#definitions)
 6. [Non-goals / Out of scope](#non-goals--out-of-scope)
 	1. [Abstract methods](#abstract-methods)
 	2. [Parameterization syntax](#parameterization-syntax)
 7. [Requirements](#requirements)
-	1. [Extending API surface of implementing class](#extending-api-surface-of-implementing-class)
-	2. [Operate on prototypes, not instances](#operate-on-prototypes-not-instances)
-	3. [It should be possible to apply partials in-place](#it-should-be-possible-to-apply-partials-in-place)
-	4. [Function composition](#function-composition)
-	5. [Static introspection](#static-introspection)
-	6. [Encapsulation](#encapsulation)
+	1. [Priority of constituencies](#priority-of-constituencies)
+	2. [Extending API surface of implementing class](#extending-api-surface-of-implementing-class)
+	3. [Operate on prototypes, not instances](#operate-on-prototypes-not-instances)
+	4. [It should be possible to apply partials in-place](#it-should-be-possible-to-apply-partials-in-place)
+	5. [Function composition](#function-composition)
+	6. [Static introspection](#static-introspection)
+	7. [Encapsulation](#encapsulation)
 8. [Nice to haves](#nice-to-haves)
 	1. [Single declaration of intent](#single-declaration-of-intent)
 	2. [Instance reflection](#instance-reflection)
@@ -292,6 +294,10 @@ However, these are essentially a nicer, more declarative way to accomplish the s
 
 Additionally, while the mixin _application_ is declarative, the mixin logic is still very imperative, making it impossible to disentangle where each part comes from.
 
+### Older proposals
+
+- [Strawman: Trait composition for Classes](https://web.archive.org/web/20160313141617/http://wiki.ecmascript.org/doku.php?id=strawman:trait_composition_for_classes)
+
 ## Definitions
 
 In the following, we use these terms:
@@ -314,6 +320,10 @@ given the dynamic nature of the language, they can always be implemented as a fu
 
 ## Requirements
 
+### Priority of constituencies
+
+As a generalization of the web platform's [priority of constituencies](https://www.w3.org/TR/design-principles/#priority-of-constituencies) based on the idea of [_consumers_ over _producers_](https://lea.verou.me/blog/2025/user-effort/#consumers-over-producers), the needs of the implementing class author should take precedence over the needs of the mixin/trait/partial author, which take precedence of the needs of the underlying platform.
+
 ### Extending API surface of implementing class
 
 Many of the use cases for partials need to extend the API surface of the implementing class (new properties and methods).
@@ -321,13 +331,13 @@ While most use cases are around instance fields, extending statics should also b
 
 ### Operate on prototypes, not instances
 
-All API surface extension should be done on the class prototype, not individual instances, both for performance reasons and to make introspection easier.
+All API surface extension should be done on the class prototype, not individual instances, both for performance reasons and to facilitate introspection.
 
 ### It should be possible to apply partials in-place
 
 For many use cases, it is _essential_ to be able to extend a class _after_ it has been defined.
 
-One of these use cases is [custom attributes](https://github.com/w3c/tpac2025-breakouts/issues/46), which effectively add partials to existing element classes (typically `HTMLElement`), and this can happen at any point in time.
+It is not always practical to replace classes with new ones, e.g. because instances have already been created and/or are not created via `new` but some other mechanism (e.g. HTML parsing, literals, etc.).
 
 But even for other use cases, being able to apply partials to an existing class decouples them, and makes it possible to develop them independently, without either having to know about the other.
 
@@ -336,9 +346,11 @@ Out of existing proposals, only [protocols](#first-class-protocols-proposal) all
 
 ### Function composition
 
-Besides adding new API surface, partials need to be able to seamlessly extend existing methods with new behavior.
+In many designs, naming conflicts are treated either as errors, or via precedence rules about what overrides what.
+However, opt-in _composition_ can enable more flexible and powerful patterns.
+Besides adding new API surface, partials often need to be able to seamlessly extend existing methods with new behavior.
 
-[subclass factories](../prior-art.md#subclass-factories-mixins) sidestep function composition by piggybacking on inheritance which has established, explicit mechanisms for this.
+[Subclass factories](../prior-art.md#subclass-factories-mixins) sidestep function composition by piggybacking on inheritance which has established, explicit mechanisms for this.
 But any non-inheritance-based design needs a way to compose functions.
 
 On a high level, the options are:

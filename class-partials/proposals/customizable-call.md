@@ -32,7 +32,7 @@ Most internal properties can be tweaked on existing objects, either through dedi
 | `[[Replace]]` | `obj[Symbol.replace]` |
 | `[[Search]]` | `obj[Symbol.search]` |
 | `[[Split]]` | `obj[Symbol.split]` |
-| `[[Species]]` | `Ctor[Symbol.species]` |
+| `[[Species]]` | `obj[Symbol.species]` |
 | `[[Unscopables]]` | `obj[Symbol.unscopables]` |
 | `[[Dispose]]` | `obj[Symbol.dispose]` |
 | `[[AsyncDispose]]` | `obj[Symbol.asyncDispose]` |
@@ -40,10 +40,17 @@ Most internal properties can be tweaked on existing objects, either through dedi
 `[[ Call ]]` is one of the few internal properties that is not customizable.
 It is however exposed as a proxy trap, which means that the only way to modify it is to create a pointless (and slow) `Proxy` around the existing function, just so one can use the `apply` trap.
 
+### Use cases
+
+- Adding side effects (see [mutable functions](mutable-functions.md))
+- Implementing [Aspect-oriented programming (AOP)](https://en.wikipedia.org/wiki/Aspect-oriented_programming)
+
 ## Proposal
 
 Add a new known symbol: `Symbol.call` that can be used to customize the `[[ Call ]]` internal method.
+By default, `fn[Symbol.call].call(ctx, ...args)` is the same as `fn.call(ctx, ...args)`, but `fn[Symbol.call]` can be overridden while preserving references to the original function.
 
+Built-ins for which it would be impractical to customize the `[[ Call ]]` internal method can simply define the property as non-configurable and non-writable.
 
 For example, suppose we wanted to emulate a [mutable function](mutable-functions.md) in userland through a `Function` subclass.
 If the `[[ Call ]]` internal method was customizable, we could do:

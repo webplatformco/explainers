@@ -2,15 +2,18 @@
 
 ## Motivation
 
-Public class fields make a common pattern of declaring instance properties more declarative.
+Public class fields made the common pattern of declaring instance properties more declarative.
 
 However, while static class fields can be trivially introspected by looking at properties of the class constructor, there is no way to introspect instance fields from a class reference (without creating an instance).
+
+This limits many metaprogramming use cases, as there is no way to figure out the shape of the class from the outside, without creating an instance.
+For example, this is needed to generate accessors to implement [delegation](delegation.md), or to emulate [class spread syntax](class-spread.md) for partials.
 
 ## Proposal
 
 ### Core idea
 
-A new known symbol that provides read-only or read-write access to (a subset of) a class's internal `[[ Fields ]]` slot.
+A new known symbol that provides read-only or limited read-write access to (a subset of) a class's internal `[[ Fields ]]` slot.
 
 ### Design decisions
 
@@ -24,18 +27,18 @@ Since static fields can already be introspected (though less cleanly) it may be 
 
 OTOH, including metadata is a more extensible design, in which case there is no benefit in excluding static fields.
 
-#### Read-only or read-write?
+#### Mutable?
 
 There is a spectrum between purely read-only access (which still addresses the use cases around introspection) and a completely mutable data structure, which allows adding fields, removing fields, or modifying initializers.
 
-While it’s unclear whether there are use cases for a fully mutable data structure, the ability to **add** fields would make this incredibly more powerful, and address most of the use cases for [instance initializers](constructor-initializer.md) while sidestepping the issues around extending built-ins, since built-in classes are not created via `ClassDefinitionEvaluation` and thus have no internal `[[ Fields ]]` slot.
+While making the data structure fully mutable seems like it adds complexity without enough use cases to warrant it, the ability to **add** can be incredibly powerful, as it addresses most of the use cases for [instance initializers](constructor-initializer.md) while sidestepping the issues around extending built-ins, since built-in classes are not created via `ClassDefinitionEvaluation` and thus have no internal `[[ Fields ]]` slot.
 
 One question in that case is how to expose an append-only _List_.
 Possibly an array-like object with a `push` method?
 Or would a completely exotic iterable with an `append` method be better?
 If array-like, would it include mutation methods, and just throw or fail silently?
-Would an author-facing `AppendOnlyList` primitive be overkill?
-Or perhaps an array with all its numerical properties defined as [[Writable]]: **false**, and [[Configurable]]: **false**?
+Essentially we need the opposite of `Object.preventExtensions()`: allow extensions, but freeze existing property assignments.
+Basically an array with all its numerical properties defined as [[Writable]]: **false**, and [[Configurable]]: **false**.
 
 #### Potential known symbol name
 
@@ -61,5 +64,5 @@ The getter returns an append-only _List_ of _Record_ objects, each with the foll
 - `initializer`: The initializer of the field. (`Function`)
 - `isStatic`: Whether the field is static. (`boolean`)
 
-The list is exposed using an array-like object.
-The extent of mutations that can apply to it is TBD.
+The list is exposed using an array-like object whose numerical properties are non-writable and non-configurable.
+Array methods are supported, but any attempt to modify the list will throw a `TypeError` consistent with any other attempt to modify a non-writable and non-configurable property.

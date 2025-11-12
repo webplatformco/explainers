@@ -7,5 +7,5 @@ Eventually, explainers with a lot of active work, multiple files or contributors
 
 Existing project repos:
 - [project-image-animation](https://github.com/webplatformco/project-image-animation): Work on exposing playback controls for animated images on the Web
-- [project-idrefs](https://github.com/webplatformco/project-idrefs): Work on fixing HTML element references (IDREFs)
+- [project-idrefs](https://github.com/WICG/idrefs): Work on fixing HTML element references (IDREFs)
 - [project-class-composition](https://github.com/webplatformco/project-class-composition): Work on exploring the problem space and potential solutions around non-inheritance based class composition.

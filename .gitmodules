@@ -1,0 +1,9 @@
+[submodule "image-animation"]
+	path = image-animation
+	url = https://github.com/webplatformco/project-image-animation.git
+[submodule "html-element-references"]
+	path = html-element-references
+	url = https://github.com/WICG/idrefs.git
+[submodule "class-partials"]
+	path = class-partials
+	url = https://github.com/webplatformco/project-class-composition.git

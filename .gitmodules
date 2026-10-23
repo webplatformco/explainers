@@ -10,3 +10,6 @@
 [submodule "custom-attributes"]
 	path = custom-attributes
 	url = https://github.com/webplatformco/project-custom-attributes.git
+[submodule "css-widgets"]
+	path = css-widgets
+	url = https://github.com/webplatformco/project-css-widgets.git

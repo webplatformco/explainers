@@ -7,3 +7,6 @@
 [submodule "class-partials"]
 	path = class-partials
 	url = https://github.com/webplatformco/project-class-composition.git
+[submodule "custom-attributes"]
+	path = custom-attributes
+	url = https://github.com/webplatformco/project-custom-attributes.git
